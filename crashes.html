@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>76052 Road Gaps: Crashes</title>
+<meta name="description" content="TxDOT crash records for US 287, FM 156 and Avondale-Haslet Rd in ZIP 76052, 2016 to 2026: crashes rising faster than traffic on roads that haven't been widened.">
+<!-- Link preview for Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="More traffic, same roads, more crashes">
+<meta property="og:description" content="31 killed and 678 injured on 76052's main roads since 2016, from TxDOT's own crash records.">
+<meta property="og:image" content="https://loganlaporte.github.io/76052-road-gaps/crashes-preview.png">
+<meta property="og:url" content="https://loganlaporte.github.io/76052-road-gaps/crashes.html">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif;background:#f3f4f2}img{max-width:100%}[hidden]{display:none!important}</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: map + finding list side by side on desktop, stacked on phone; method notes below */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --ink:#1e2327; --muted:#5d666d; --line:#d6dad8;
+  --road:#8f989e; --road-major:#4a5359; --zip:#1e2327; --zipfill:#e8ebe7;
+  --stripe:#d9a300; --high:#c8372d; --med:#d17a00; --low:#4f7f3a; --gone:#8a8f93; --fix:#2f6fb0;
+  --front:#0f8a83; --hood:#7a5cc4; --rail:#6b4a2f; --new:#b8860b;
+  --display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15191c; --panel:#1d2226; --ink:#e7eae8; --muted:#9aa3a9; --line:#343b40;
+  --road:#566067; --road-major:#98a2a8; --zip:#e7eae8; --zipfill:#20262a;
+  --stripe:#f0bd2a; --high:#ef6a5f; --med:#f0a040; --low:#86b86d; --gone:#80878c; --fix:#6aa6e6;
+  --front:#3fc2b9; --hood:#a88cf0; --rail:#c9a27e; --new:#e6b84a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15191c; --panel:#1d2226; --ink:#e7eae8; --muted:#9aa3a9; --line:#343b40;
+  --road:#566067; --road-major:#98a2a8; --zip:#e7eae8; --zipfill:#20262a;
+  --stripe:#f0bd2a; --high:#ef6a5f; --med:#f0a040; --low:#86b86d; --gone:#80878c; --fix:#6aa6e6;
+  --front:#3fc2b9; --hood:#a88cf0; --rail:#c9a27e; --new:#e6b84a; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body)}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 48px;display:grid;gap:28px}
+header{display:grid;gap:8px;border-bottom:4px solid var(--stripe);padding-bottom:18px}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(30px,5vw,46px)/1.05 var(--display);margin:0;text-wrap:balance;letter-spacing:.01em}
+.lede{max-width:68ch;margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.mapbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;display:grid;gap:10px;min-width:0}
+svg{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font:12px var(--mono);color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+.list{display:grid;gap:12px;min-width:0}
+.f{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:6px;padding:14px 16px;display:grid;gap:6px;cursor:pointer}
+.f:focus-visible,.f.on{outline:2px solid var(--c);outline-offset:2px}
+.fh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.id{font:700 15px var(--mono);color:var(--c)}
+.fh h3{font:600 20px/1.2 var(--display);margin:0;letter-spacing:.01em}
+.pill{margin-left:auto;font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:99px;border:1px solid var(--c);color:var(--c);white-space:nowrap}
+.stats{display:flex;flex-wrap:wrap;gap:4px 18px;font:13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.stats b{color:var(--ink);font-weight:500}
+.f p{margin:0;font-size:14px}
+.src{font:12px var(--mono);color:var(--muted)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px 32px}
+.notes h2{font:600 22px var(--display);margin:0 0 6px}
+.notes p,.notes li{font-size:14px;max-width:62ch}
+.notes ul{padding-left:18px;margin:0;display:grid;gap:4px}
+a{color:var(--fix)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:600 12px var(--mono);letter-spacing:.04em;text-transform:uppercase;padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tabs button:focus-visible{outline:2px solid var(--stripe);outline-offset:2px}
+.grp{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.zone{display:grid;gap:14px;border-top:4px solid var(--hood);padding-top:18px}
+.zone h2{font:700 clamp(24px,3.6vw,34px)/1.1 var(--display);margin:0;text-wrap:balance}
+.zone .lede{max-width:72ch}
+.facts{display:flex;flex-wrap:wrap;gap:8px 28px;font:13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.facts b{display:block;font:600 22px var(--display);color:var(--ink)}
+.byline{font:13px var(--mono);color:var(--muted);margin:0}
+.top{display:grid;gap:10px}
+.top h2,.act h2{font:700 clamp(22px,3vw,28px)/1.1 var(--display);margin:0}
+.top5{margin:0;padding-left:1.4em;display:grid;gap:8px;max-width:78ch}
+.top5 li{font-size:16px}
+.top5 li::marker{font:700 18px var(--display);color:var(--high)}
+.top5 a{font:600 12px var(--mono);margin-left:4px}
+.act{display:grid;gap:12px;border-top:4px solid var(--fix);padding-top:18px}
+.actgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:grid;gap:6px;align-content:start;min-width:0}
+.card h3{font:600 20px var(--display);margin:0}
+.card p{margin:0;font-size:14px}
+.contact{font:13px var(--mono);color:var(--muted)}
+.sel{user-select:all;color:var(--ink)}
+.foot{font:12px var(--mono);color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+.sitenav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font:600 13px var(--mono);margin:0 0 14px;padding:0 0 10px;border-bottom:1px solid var(--line)}.sitenav a{color:var(--ink);text-decoration:none}.sitenav a[aria-current]{color:var(--muted);pointer-events:none}.sitenav a:not([aria-current]){text-decoration:underline;text-underline-offset:3px}
+.traffic{display:grid;gap:14px;border-top:4px solid var(--high);padding-top:18px}
+.traffic h2{font:700 clamp(24px,3.6vw,34px)/1.1 var(--display);margin:0;text-wrap:balance}
+.traffic h3{font:600 20px var(--display);margin:6px 0 0}
+.traffic .lede{max-width:72ch}
+.chartbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;min-width:0;overflow:hidden}
+.chartbox .tk{font:12px var(--mono);fill:var(--muted)}.chartbox .ll{font:600 13px var(--mono)}.chartbox .bl{font:600 15px var(--body);fill:var(--ink)}.chartbox .bv{font:600 14px var(--mono);fill:var(--ink)}
+.tnote{font:12px var(--mono);color:var(--muted);max-width:90ch;margin:0}
+.ttable{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px}.ttable table{border-collapse:collapse;width:100%;min-width:560px;font:14px var(--body);font-variant-numeric:tabular-nums}.ttable th{font:600 12px var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}.ttable td{padding:10px 12px;border-bottom:1px solid var(--line)}.ttable tr:last-child td{border-bottom:0}.ttable td:first-child{font-weight:600}.ttable small{color:var(--muted)}.ttable .bad{color:var(--high);font-weight:600}.ttable .warn{color:var(--med);font-weight:600}
+.tgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}@media (max-width:860px){.tgrid{grid-template-columns:1fr}}
+
+:root{--s287:#c8372d;--sah:#2f6fb0;--sbu:#d17a00;--s156:#7a5cc4}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--s287:#e65a50;--sah:#5a96d6;--sbu:#c97d22;--s156:#9679e0}}
+:root[data-theme="dark"]{--s287:#e65a50;--sah:#5a96d6;--sbu:#c97d22;--s156:#9679e0}
+.sec{display:grid;gap:14px;border-top:4px solid var(--line);padding-top:18px}
+.sec h2{font:700 clamp(24px,3.6vw,34px)/1.1 var(--display);margin:0;text-wrap:balance}
+.sec h3,.chartbox h3,.cols h3{font:600 20px var(--display);margin:0}
+#us287,#bridge{border-top-color:var(--high)}#fm156{border-top-color:var(--hood)}
+.chartbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;min-width:0;display:grid;gap:8px}
+.chartbox svg{width:100%;height:auto;overflow:visible}
+.chartbox .tk,svg .tk{font:12px var(--mono);fill:var(--muted)}svg .ll{font:600 13px var(--mono)}svg .bl{font:600 14px var(--body);fill:var(--ink)}svg .bv{font:600 13px var(--mono);fill:var(--ink)}svg .bvk{font:700 14px var(--mono);fill:var(--high)}
+svg .ml{font:600 12px var(--mono);fill:var(--ink);paint-order:stroke;stroke:var(--zipfill);stroke-width:3px}svg .mn{font:700 12px var(--mono);fill:var(--bg)}
+svg .grid{stroke:var(--line);stroke-width:1}
+.hit{cursor:default;outline:none}.hit:focus-visible{outline:2px solid var(--stripe)}
+.tgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}@media (max-width:860px){.tgrid{grid-template-columns:1fr}}
+.tnote{font:12px var(--mono);color:var(--muted);max-width:90ch;margin:0}
+.facts.big b{font-size:clamp(26px,4vw,38px)}.facts.big span{max-width:22ch}
+.hot{margin:0;padding-left:1.6em;display:grid;gap:10px;align-content:start}.hot li{display:grid;gap:2px}.hot li::marker{font:700 16px var(--mono);color:var(--ink)}.hot b{font-weight:600}.hot span{font:13px var(--mono);color:var(--muted)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px 32px}.cols ul{padding-left:18px;margin:6px 0 0;display:grid;gap:6px}.cols li,.cols p{font-size:14px;max-width:62ch}.cols p{margin:6px 0 0}
+#meaning{border-top-color:var(--stripe)}
+#tip{position:fixed;z-index:10;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:13px var(--body);box-shadow:0 4px 16px rgba(0,0,0,.18);max-width:260px;display:grid;gap:2px}
+#tip b{font-weight:600}#tip .tt{font-weight:600;margin-top:2px}#tip .dot{margin-right:6px;vertical-align:-1px}
+.tables summary{cursor:pointer;font:600 14px var(--mono)}.tables{display:grid;gap:12px}
+.ttable{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px;margin-top:12px}.ttable table{border-collapse:collapse;width:100%;min-width:640px;font:13px var(--body);font-variant-numeric:tabular-nums}.ttable th{font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}.ttable td{padding:7px 10px;border-bottom:1px solid var(--line)}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+<header>
+  <nav class="sitenav" aria-label="76052 Road Gaps pages">76052 Road Gaps · <a href="https://loganlaporte.github.io/76052-road-gaps/">Summary &amp; what you can do</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/details.html">Full data &amp; methods</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/crashes.html" aria-current="page">Crashes</a></nav>
+  <div class="eyebrow">ZIP 76052 · TxDOT crash records, January 2016 to September 25, 2026</div>
+  <h1>More traffic, the same roads, more crashes</h1>
+  <p class="lede">The <a href="https://loganlaporte.github.io/76052-road-gaps/">Road Gaps summary</a> shows where 76052's roads haven't kept up with growth: a one-lane-each-way bridge on the main way out of Sendera, a 2-lane FM 156 through Haslet, and US 287 carrying nearly three times the traffic it did in 2010. This page adds the other half of the story. It uses TxDOT's own crash records to ask what happens on those same roads as they fill up.</p>
+  <p class="lede">The answer so far: crashes on the roads that stayed the same size have grown much faster than traffic. On US 287 inside the ZIP, the chance of a crash per mile driven has roughly tripled since 2019. At the Avondale-Haslet bridge interchange, crashes have nearly doubled. And on FM 156, crashes climb every time traffic nears what the road can carry.</p>
+  <p class="byline">Independent analysis by a 76052 resident. Crash data comes from TxDOT's Crash Records Information System (CRIS), which compiles Texas peace officer crash reports. As TxDOT requires, the analysis and conclusions here are the author's own and not those of the State of Texas or TxDOT. Not affiliated with TxDOT, the City of Fort Worth, the Town of Haslet, or Tarrant, Denton or Wise County.</p>
+</header>
+
+<div class="facts big" aria-label="Totals, 2016 through September 25, 2026">
+  <span><b>1,396</b>reported crashes on US 287, FM 156, Business 287, FM 718 and Avondale-Haslet Rd inside 76052</span>
+  <span><b>678</b>people injured</span>
+  <span><b>31</b>people killed</span>
+  <span><b>83</b>crashes that killed someone or caused a serious injury</span>
+  <span><b>≈2.6×</b>higher crash risk per vehicle on US 287, 2023–25 vs. 2017–19</span>
+</div>
+
+<section class="sec" id="by-year" aria-labelledby="h-year">
+  <h2 id="h-year">Crashes per year, by road</h2>
+  <p class="lede">Every reported crash on these roads that TxDOT could place inside the ZIP. Crashes held at about 65–105 a year through 2020, then jumped to 140–170 a year. 2026 is only counted through September 25 and has already reached last year's total.</p>
+  <div class="chartbox"><div class="legend" id="leg-year"></div><svg id="c-year" role="img" aria-label="Stacked bar chart of crashes per year by road, 2016 to 2026"></svg></div>
+  <p class="tnote">* 2026 covers January 1 to September 25. At the same pace the full year would come to about 230 crashes. Roads are grouped by what the crash report lists as the road. Avondale-Haslet Rd here is the city-maintained section east of US 287. The state-maintained section west of the bridge is FM 718, counted with Business 287.</p>
+</section>
+
+<section class="sec" id="us287" aria-labelledby="h-us287">
+  <h2 id="h-us287">US 287: crashes are outrunning traffic</h2>
+  <p class="lede">If crashes only grew because more cars use the road, the two lines below would rise together. Through 2021 they roughly did. Since 2022 crashes have pulled far ahead. Traffic in 2025 was about 1.5 times the 2017–19 level. Crashes were almost 5 times higher.</p>
+  <div class="tgrid">
+    <div class="chartbox"><h3>Traffic vs. crashes on US 287, indexed</h3><div class="legend" id="leg-idx"></div><svg id="c-idx" role="img" aria-label="Line chart comparing US 287 traffic and crash counts, both indexed so that the 2017 to 2019 average equals 100"></svg><p class="tnote">100 = the 2017–19 average for each. Traffic is the average of TxDOT's two count stations inside the ZIP (north of Avondale-Haslet and south of it).</p></div>
+    <div class="chartbox"><h3>Crashes per 100 million vehicle-miles</h3><svg id="c-rate" role="img" aria-label="Bar chart of the US 287 crash rate per 100 million vehicle-miles, 2016 to 2025"></svg><p class="tnote">Crashes divided by miles driven on the 5.5 miles of US 287 inside the ZIP. This is the measure traffic engineers use to compare risk, because it removes the effect of there simply being more cars.</p></div>
+  </div>
+  <div class="facts">
+    <span><b>≈19 → 93</b>crashes a year, 2017–19 average vs. 2025</span>
+    <span><b>≈8 → 46</b>people injured a year, same comparison</span>
+    <span><b>56</b>people injured in 2026 so far, more than all of 2025</span>
+    <span><b>2 lanes</b>each way, the whole way through the ZIP</span>
+  </div>
+  <p class="lede">The increase isn't in one spot. The stretch south of Avondale-Haslet through Haslet went from 3–7 crashes a year before 2020 to about 30 a year now. The Wise County end around the SH 114 interchange went from 6–8 a year to 31–37. The most common crash types are single vehicles leaving the road, sideswipes during lane changes, and rear-ends. Those are the crashes that grow when traffic is dense and speeds vary. Only a handful are marked as work-zone crashes, so construction doesn't explain the jump.</p>
+</section>
+
+<section class="sec" id="fm156" aria-labelledby="h-fm156">
+  <h2 id="h-fm156">FM 156: crashes rise and fall with traffic</h2>
+  <p class="lede">FM 156 is still one lane each way through Haslet. Each dot below is one year: how much traffic TxDOT counted in Haslet, and how many crashes happened on FM 156 inside the ZIP. When traffic climbed about 30% in 2021–22, to the level where the road reaches rush-hour capacity, crashes more than doubled. When traffic eased, crashes fell back.</p>
+  <div class="tgrid">
+    <div class="chartbox"><h3>Traffic vs. crashes, one dot per year</h3><svg id="c-fm" role="img" aria-label="Scatter plot of FM 156 daily traffic in Haslet against crashes per year, 2016 to 2025"></svg><p class="tnote">Correlation between yearly traffic and yearly crashes: 0.73 (1.0 would mean they move in lockstep).</p></div>
+    <div class="chartbox"><h3>How FM 156 crashes happen</h3><svg id="c-fmman" role="img" aria-label="Bar chart of the most common FM 156 crash types"></svg><p class="tnote">The top type is a car hitting another that has slowed or stopped: the signature crash of a road that backs up. At rush hour it makes up 45% of FM 156 crashes, compared with 34% the rest of the day.</p></div>
+  </div>
+  <p class="lede">TxDOT's Dallas District lists the FM 156 widening in Denton County at $103 million with no funding and no construction date. In Haslet, TxDOT's Fort Worth District is still studying it. See <a href="https://loganlaporte.github.io/76052-road-gaps/#map">finding B</a>.</p>
+</section>
+
+<section class="sec" id="bridge" aria-labelledby="h-bridge">
+  <h2 id="h-bridge">The Avondale-Haslet bridge interchange</h2>
+  <p class="lede">The bridge over US 287 carries one lane each way. Within about 350 m it meets the frontage-road signals, the Saginaw Blvd (Business 287) signal and FM 718. Counting every crash within 450 m of the bridge, on any of those roads, gives the chart below. In 2024 up to 19,700 vehicles a day used the bridge, likely more than one lane through a signal can carry at rush hour (<a href="https://loganlaporte.github.io/76052-road-gaps/#traffic">Traffic over time</a>).</p>
+  <div class="tgrid">
+    <div class="chartbox"><h3>Crashes within 450 m of the bridge</h3><svg id="c-bridge" role="img" aria-label="Bar chart of crashes near the Avondale-Haslet bridge interchange per year"></svg><p class="tnote">* 2026 through September 25. 2016 looks low because few crashes on the city section that year had map coordinates, so the comparison starts at 2017.</p></div>
+    <div class="chartbox"><h3>How crashes on the bridge's city approach happen</h3><svg id="c-brman" role="img" aria-label="Bar chart of crash types on the Avondale-Haslet approach to the bridge"></svg><p class="tnote">Left turns across oncoming traffic lead by far, and 63% of these crashes happen between 6 and 9 am or 3 and 7 pm. With two signals this close together, lines back up across the turn lanes and drivers turn through gaps.</p></div>
+  </div>
+  <div class="facts">
+    <span><b>≈15 → 30</b>crashes a year, 2017–19 average vs. 2026 so far</span>
+    <span><b>233</b>crashes near the interchange since 2016</span>
+    <span><b>≈110</b>people injured</span>
+    <span><b>12</b>fatal or serious-injury crashes</span>
+  </div>
+  <p class="lede">Neither of TxDOT's US 287 plans that meet at this interchange describes widening the bridge (<a href="https://loganlaporte.github.io/76052-road-gaps/#area-j">finding J9</a>). Fort Worth's Avondale-Haslet widening, due in 2028, widens the road east of the bridge but not the bridge itself (<a href="https://loganlaporte.github.io/76052-road-gaps/#map">finding C</a>).</p>
+</section>
+
+<section class="sec" id="hotspots" aria-labelledby="h-hot">
+  <h2 id="h-hot">Where crashes cluster</h2>
+  <p class="lede">Each circle is a small area about 400 m across, sized by how many crashes happened there from 2016 to 2026. The numbered spots are the biggest clusters.</p>
+  <div class="grid">
+    <div class="chartbox"><svg id="c-map" role="img" aria-label="Map of ZIP 76052 with circles sized by crash count and numbered hotspots"></svg><div class="legend"><span><i class="dot" style="background:var(--s287)"></i>Circle area = crashes in that spot</span><span><i style="width:18px;height:2px;background:var(--road-major);display:inline-block"></i>Major road</span></div></div>
+    <ol class="hot" id="hotlist"></ol>
+  </div>
+</section>
+
+<section class="sec" id="when" aria-labelledby="h-when">
+  <h2 id="h-when">When crashes happen</h2>
+  <p class="lede">Crashes by hour of day across all of these roads. The two peaks line up with the morning and evening commutes, the hours when the <a href="https://loganlaporte.github.io/76052-road-gaps/#traffic">rush-hour capacity estimates</a> show the bridge over capacity and FM 156 near it. The evening rush is the worst part of the day, and 4 to 5 pm is the single worst hour.</p>
+  <div class="chartbox"><svg id="c-hour" role="img" aria-label="Bar chart of crashes by hour of day, with morning and evening rush hours highlighted"></svg><div class="legend"><span><i class="dot" style="background:var(--s287)"></i>Rush hours (6–9 am, 3–7 pm)</span><span><i class="dot" style="background:var(--road)"></i>Other hours</span></div></div>
+</section>
+
+<section class="sec" id="people" aria-labelledby="h-people">
+  <h2 id="h-people">People hurt and killed</h2>
+  <p class="lede">The number of people injured each year has more than doubled since 2019. 2026 has already passed every earlier year, with three months still to go.</p>
+  <div class="chartbox"><h3>People injured per year, with deaths</h3><svg id="c-people" role="img" aria-label="Bar chart of people injured per year with the number killed shown beneath each year"></svg><p class="tnote">* 2026 through September 25. Injured includes every injury level on the crash report, from possible to serious. Deaths are shown under each year. Behind every number is a person, and this page doesn't list any personal details.</p></div>
+</section>
+
+<section class="sec notes-wide" id="meaning" aria-labelledby="h-mean">
+  <h2 id="h-mean">What this shows, and what it can't</h2>
+  <div class="cols">
+    <div>
+      <h3>What the data shows</h3>
+      <ul>
+        <li>Crashes on these roads rose from about 66–101 a year (2016–19) to 172 in 2024 and 2025, and 2026 is on pace for more.</li>
+        <li>On US 287, crashes grew about 3.7 times while traffic grew about 1.4 times, comparing 2023–25 with 2017–19. The crash rate per mile driven nearly tripled.</li>
+        <li>On FM 156, crashes track traffic closely and jump when traffic reaches the road's rush-hour capacity.</li>
+        <li>At the bridge interchange, crashes roughly doubled, and most are rush-hour left-turn crashes.</li>
+        <li>The bridge is still one lane each way, FM 156 through Haslet is still one lane each way, and US 287 is still two lanes each way. The widenings that exist on paper are unfunded, still being studied, or stop short of the bridge.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What it can't prove</h3>
+      <ul>
+        <li>This is a correlation. More people driving, new drivers who don't know the roads, more trucks and distracted driving all play a part, and a crash report doesn't say whether a wider road would have prevented it.</li>
+        <li>We can't say how many of the 31 deaths a new bridge or extra lanes would have prevented.</li>
+        <li>What traffic engineers do agree on is that crashes rise faster than traffic once a road runs near capacity. Stop-and-go queues, short gaps for left turns and lane changes in dense traffic all multiply conflicts. That's the pattern in these numbers.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>The question for TxDOT and the city</h3>
+      <p>Every year these projects stay unfunded, the roads carry more traffic and, so far, more crashes. People have been hurt at a rising rate on roads that are due for work but have no construction date. Residents deserve a clear answer on when that changes: for the Avondale-Haslet bridge, for FM 156 through Haslet and Denton County, and for US 287 through the ZIP.</p>
+      <p><a href="https://loganlaporte.github.io/76052-road-gaps/#act">Who to contact and how →</a></p>
+    </div>
+  </div>
+</section>
+
+<section class="notes">
+  <div>
+    <h2>How this was built</h2>
+    <p>Crash records come from TxDOT's public CRIS query tool. Two queries were run for 2016 through September 25, 2026: every crash on US 287/US 81, FM 156, FM 718 and Business 287 in Tarrant, Denton and Wise counties, and every crash on Avondale Haslet Rd in Tarrant County. Crashes were kept when their map coordinates fall inside the Census boundary for ZIP 76052.</p>
+    <p>Crash rates divide crashes by vehicle-miles: TxDOT's annual traffic count times 365 days times the road's length inside the ZIP (5.5 miles for US 287). Traffic figures and rush-hour capacity estimates come from the <a href="https://loganlaporte.github.io/76052-road-gaps/#traffic">Traffic over time</a> section.</p>
+  </div>
+  <div>
+    <h2>Limits of the data</h2>
+    <ul>
+      <li>About 4% of crash reports have no coordinates and can't be placed. They're left out, so the counts here are a little low, never high.</li>
+      <li>CRIS includes only crashes reported by police on a state crash form (usually one with an injury or at least $1,000 of damage). Minor fender-benders that nobody reported aren't counted.</li>
+      <li>2016 figures for the city section of Avondale-Haslet look incomplete, so bridge comparisons start in 2017.</li>
+      <li>US 287 traffic comes from two count stations; the south end near FM 156 carries more traffic, so the rate there is somewhat lower than the ZIP-wide figure.</li>
+      <li>Hotspot names are the nearest cross street to the center of each cluster.</li>
+    </ul>
+  </div>
+  <div>
+    <h2>Sources</h2>
+    <ul>
+      <li><a href="https://cris.dot.state.tx.us/public/Query/app/home" target="_blank" rel="noopener">TxDOT Crash Records Information System (CRIS) public query</a>, data as of September 30, 2026</li>
+      <li><a href="https://services.arcgis.com/KTcxiTD9dsQw4r7Z/ArcGIS/rest/services/TxDOT_AADT_Annuals_(Public_View)/FeatureServer/0" target="_blank" rel="noopener">TxDOT AADT Annuals</a> and 5-year urban counts (traffic)</li>
+      <li><a href="https://services.arcgis.com/KTcxiTD9dsQw4r7Z/ArcGIS/rest/services/Roadway_Inventory_2023/FeatureServer/0" target="_blank" rel="noopener">TxDOT Roadway Inventory 2023</a> (lanes, rush-hour factors)</li>
+      <li>Census TIGERweb ZCTA boundary for 76052 · OpenStreetMap road geometry</li>
+      <li><a href="https://www.txdot.gov/content/dam/docs/district/dal/projects-by-county/utp-projects-denton-q4-2025.pdf" target="_blank" rel="noopener">TxDOT Dallas District: Denton County UTP projects (Q4 2025)</a></li>
+      <li><a href="https://fortworthtexas.gov/projects/cfw-avondale-haslet-road-improvements" target="_blank" rel="noopener">Fort Worth: Avondale Haslet Road Improvements</a></li>
+    </ul>
+  </div>
+</section>
+
+<details class="tables">
+  <summary>Show the numbers as tables</summary>
+  <div id="tables"></div>
+</details>
+
+<div class="foot">Crash data: TxDOT CRIS, compiled from Texas Peace Officer's Crash Reports (CR-3); analysis and conclusions are the author's own, not those of the State of Texas or TxDOT. Map data © OpenStreetMap contributors (ODbL). <a href="https://loganlaporte.github.io/76052-road-gaps/">Back to the summary</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/details.html">Full data &amp; methods</a>. Found an error? Corrections are welcome.</div>
+</div>
+<div id="tip" role="tooltip" hidden></div>
+
+<script>window.CRASH={"years":[2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026],"stack":{"US 287":[30,21,19,18,21,31,43,43,79,93,75],"FM 156":[40,42,19,20,29,53,67,51,39,36,40],"Avondale-Haslet Rd":[26,24,22,18,37,41,30,33,38,26,40],"Business 287 & FM 718":[5,10,7,10,17,18,21,17,16,17,14]},"injured":[48,39,36,35,48,53,57,84,80,90,108],"deaths":[2,5,0,4,1,2,3,7,4,1,2],"ka":[6,9,3,5,4,5,6,14,13,7,11],"total":[101,97,67,66,104,143,161,144,172,172,169],"idx":{"years":[2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],"traffic":[94,94,97,109,107,108,125,140,134,147],"crashes":[155,109,98,93,109,160,222,222,409,481]},"fm":[[2016,12500,40],[2017,14320,42],[2018,14320,19],[2019,14120,20],[2020,12100,29],[2021,18620,53],[2022,18610,67],[2023,16790,51],[2024,14360,39],[2025,16010,36]],"hours":[29,19,22,9,22,43,64,91,77,49,61,52,57,57,73,93,125,123,117,55,56,39,34,29],"bridge":{"2016":3,"2017":16,"2018":12,"2019":16,"2020":24,"2021":27,"2022":28,"2023":26,"2024":26,"2025":25,"2026":30},"cells":[[32.964,-97.352,8],[32.976,-97.348,89],[32.988,-97.344,22],[33.024,-97.444,73],[32.936,-97.348,17],[33.008,-97.436,18],[32.924,-97.348,18],[32.992,-97.432,18],[32.972,-97.348,11],[32.968,-97.42,111],[32.948,-97.348,46],[32.932,-97.348,15],[32.96,-97.352,19],[32.944,-97.348,29],[32.984,-97.428,5],[32.924,-97.356,41],[32.948,-97.388,14],[33.004,-97.436,7],[33.012,-97.44,60],[32.996,-97.344,27],[32.964,-97.42,21],[32.956,-97.4,4],[32.972,-97.352,5],[32.968,-97.352,42],[32.96,-97.42,12],[32.928,-97.348,17],[32.972,-97.42,35],[33.036,-97.452,16],[32.952,-97.348,19],[32.96,-97.348,17],[33.02,-97.328,26],[32.976,-97.424,6],[32.956,-97.348,6],[32.98,-97.424,9],[32.96,-97.408,9],[32.968,-97.416,78],[33.0,-97.432,3],[32.944,-97.384,11],[33.004,-97.344,3],[32.984,-97.34,5],[32.924,-97.36,10],[32.952,-97.392,19],[32.996,-97.432,6],[32.964,-97.416,8],[33.0,-97.344,3],[32.956,-97.42,3],[32.992,-97.344,3],[32.944,-97.38,5],[32.952,-97.396,5],[32.948,-97.384,4],[32.94,-97.348,4],[33.012,-97.436,4],[32.964,-97.412,11],[32.936,-97.372,11],[33.016,-97.44,3],[32.928,-97.364,4],[32.928,-97.36,7],[33.028,-97.444,7],[32.932,-97.368,5],[32.948,-97.392,3],[32.98,-97.344,4],[32.968,-97.368,19],[32.968,-97.392,50],[32.968,-97.36,18],[32.968,-97.384,49],[32.968,-97.388,12],[32.968,-97.396,7],[32.968,-97.404,7],[32.968,-97.364,8],[32.968,-97.408,13],[32.968,-97.38,5],[32.968,-97.412,17],[32.968,-97.4,38],[32.968,-97.372,3],[32.968,-97.376,5],[32.968,-97.356,3]],"manner":{"US 287":[["Single vehicle (off road, object)",110],["Sideswipe, same direction",82],["Rear-end, both moving",67],["Angle (T-bone)",61],["Left turn across traffic",58]],"FM 156":[["Hit a slowing or stopped car",116],["Left turn across traffic",89],["Single vehicle (off road, object)",52],["Angle (T-bone)",46],["Rear-end, both moving",45]],"Avondale-Haslet bridge area":[["Left turn across traffic",42],["Angle (T-bone)",8],["Rear-end, both moving",6],["Sideswipe, same direction",5],["Hit a slowing or stopped car",4]]},"rate":{"2016":55.2,"2017":38.6,"2018":33.6,"2019":28.4,"2020":33.9,"2021":49.5,"2022":59.3,"2023":52.9,"2024":101.6,"2025":108.9},"zip":[[-97.461,33.045],[-97.456,33.042],[-97.452,33.036],[-97.453,33.036],[-97.442,33.021],[-97.431,32.992],[-97.421,32.971],[-97.421,32.957],[-97.409,32.957],[-97.418,32.948],[-97.419,32.943],[-97.418,32.94],[-97.409,32.94],[-97.409,32.947],[-97.409,32.94],[-97.407,32.94],[-97.407,32.93],[-97.406,32.93],[-97.405,32.924],[-97.375,32.924],[-97.375,32.925],[-97.373,32.925],[-97.373,32.924],[-97.332,32.924],[-97.332,32.948],[-97.317,32.948],[-97.317,32.962],[-97.321,32.962],[-97.32,32.973],[-97.325,32.974],[-97.325,32.969],[-97.327,32.969],[-97.328,32.967],[-97.337,32.968],[-97.337,32.974],[-97.348,32.974],[-97.328,32.991],[-97.317,33.01],[-97.319,33.01],[-97.319,33.016],[-97.323,33.016],[-97.323,33.018],[-97.327,33.019],[-97.332,33.017],[-97.34,33.009],[-97.341,33.008],[-97.348,33.008],[-97.346,33.005],[-97.351,33.005],[-97.351,33.007],[-97.353,33.012],[-97.353,33.021],[-97.35,33.028],[-97.355,33.031],[-97.359,33.03],[-97.365,33.032],[-97.367,33.035],[-97.372,33.032],[-97.376,33.032],[-97.379,33.03],[-97.382,33.031],[-97.384,33.03],[-97.387,33.03],[-97.389,33.031],[-97.391,33.03],[-97.394,33.032],[-97.395,33.03],[-97.397,33.032],[-97.397,33.037],[-97.439,33.037],[-97.443,33.038],[-97.454,33.045],[-97.457,33.046],[-97.461,33.045]],"roads":{"US0081":[[[-97.479,33.055],[-97.478,33.051],[-97.476,33.048],[-97.463,33.044],[-97.457,33.041],[-97.444,33.024],[-97.431,32.991],[-97.422,32.972],[-97.419,32.969],[-97.386,32.946],[-97.36,32.926],[-97.348,32.915]]],"FM0156":[[[-97.301,33.055],[-97.302,33.049],[-97.313,33.02],[-97.318,33.018],[-97.326,33.019],[-97.331,33.018],[-97.339,33.011],[-97.342,33.007],[-97.342,32.982],[-97.345,32.977],[-97.352,32.971],[-97.354,32.965],[-97.353,32.963],[-97.35,32.96],[-97.349,32.954],[-97.349,32.915]],[[-97.301,33.055],[-97.311,33.023]]],"BU0287P":[[[-97.41,32.922],[-97.407,32.915]],[[-97.424,32.977],[-97.42,32.971],[-97.421,32.964],[-97.421,32.941],[-97.409,32.918]],[[-97.423,32.974],[-97.421,32.971],[-97.421,32.965]]],"FM0718":[[[-97.479,32.999],[-97.47,32.994],[-97.434,32.978],[-97.423,32.968],[-97.42,32.968]]],"SH0114":[[[-97.465,33.045],[-97.459,33.046],[-97.455,33.046],[-97.442,33.038],[-97.439,33.037],[-97.326,33.035],[-97.301,33.027]]],"AVONDALE HASLET RD":[[[-97.42,32.968],[-97.414,32.968],[-97.413,32.969],[-97.368,32.969],[-97.366,32.97],[-97.352,32.97]]],"JOHN DAY RD":[[[-97.375,33.036],[-97.375,33.029],[-97.377,33.028],[-97.377,33.016]],[[-97.377,33.016],[-97.363,33.016],[-97.356,33.014]],[[-97.358,33.014],[-97.356,33.012],[-97.359,33.005],[-97.359,32.993],[-97.356,32.992]]],"WESTPORT PKWY":[[[-97.35,32.976],[-97.348,32.974],[-97.344,32.974],[-97.323,32.974],[-97.318,32.972],[-97.302,32.972]]],"INTERMODAL PKWY":[[[-97.328,32.974],[-97.327,32.982],[-97.329,32.987],[-97.333,32.99],[-97.342,32.99]]],"BLUE MOUND RD":[[[-97.349,32.946],[-97.339,32.949],[-97.332,32.947],[-97.319,32.947]]],"E BONDS RANCH RD":[[[-97.358,32.924],[-97.331,32.924]]],"W BONDS RANCH RD":[[[-97.358,32.924],[-97.423,32.925],[-97.455,32.924],[-97.457,32.923],[-97.464,32.917],[-97.468,32.916]]],"KELLER HASLET RD":[[[-97.35,32.976],[-97.35,32.985]]],"HARMON RD":[[[-97.332,32.931],[-97.331,32.918]],[[-97.319,32.942],[-97.319,32.947],[-97.317,32.948],[-97.317,32.949],[-97.317,32.962],[-97.321,32.962],[-97.32,32.973]],[[-97.323,32.931],[-97.323,32.933]]],"SH0170":[[[-97.311,32.96],[-97.305,32.96],[-97.301,32.963]]],"IH0035W":[[[-97.317,32.919],[-97.317,32.929],[-97.311,32.949],[-97.311,32.966],[-97.308,32.978],[-97.306,32.982],[-97.3,32.99]]]},"hot":[{"name":"Avondale-Haslet bridge interchange (US 287, Saginaw Blvd, FM 718)","lat":32.9682,"lon":-97.4175,"n":233,"note":"30 in 2026 so far"},{"name":"FM 156 at Avondale-Haslet / Westport Pkwy, downtown Haslet","lat":32.9746,"lon":-97.3479,"n":89},{"name":"US 287 at SH 114, Wise County","lat":33.0256,"lon":-97.4449,"n":73,"note":"47 since 2023"},{"name":"US 287 near Ramhorn Hill Rd, Wise County","lat":33.0118,"lon":-97.4384,"n":60,"note":"33 since 2023"},{"name":"Avondale-Haslet at Willow Springs Rd","lat":32.969,"lon":-97.3935,"n":50},{"name":"Avondale-Haslet at Sendera Ranch Blvd","lat":32.969,"lon":-97.383,"n":49},{"name":"FM 156 at E Blue Mound Rd, south Haslet","lat":32.9471,"lon":-97.3486,"n":46},{"name":"Avondale-Haslet approaching FM 156","lat":32.97,"lon":-97.353,"n":42},{"name":"US 287 at FM 156 (Blue Mound Rd)","lat":32.9243,"lon":-97.3577,"n":41}]};
+(function(){
+const D=window.CRASH;
+const NS='http://www.w3.org/2000/svg';
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+const txt=(p,x,y,s,cls,anchor)=>{const t=el('text',{x,y,class:cls||'tk','text-anchor':anchor||'start'},p);t.textContent=s;return t};
+const fmt=n=>n.toLocaleString('en-US');
+const tip=document.getElementById('tip');
+function bindTip(node,html){node.setAttribute('tabindex','0');node.classList.add('hit');
+  const show=e=>{tip.innerHTML=html;tip.hidden=false;const r=(e.touches?e.touches[0]:e);let x=(r.clientX||0)+14,y=(r.clientY||0)+14;
+    if(!r.clientX){const b=node.getBoundingClientRect();x=b.left+b.width/2;y=b.top-8}
+    const w=tip.offsetWidth,h=tip.offsetHeight;if(x+w>innerWidth-8)x=innerWidth-w-8;if(y+h>innerHeight-8)y=y-h-28;tip.style.left=x+'px';tip.style.top=y+'px'};
+  node.addEventListener('mousemove',show);node.addEventListener('focus',show);node.addEventListener('touchstart',show,{passive:true});
+  node.addEventListener('mouseleave',()=>tip.hidden=true);node.addEventListener('blur',()=>tip.hidden=true)}
+const yl=y=>y===2026?'2026*':String(y);
+function axisY(g,x0,x1,Y,max,step,fmtf){for(let v=0;v<=max;v+=step){el('line',{x1:x0,x2:x1,y1:Y(v),y2:Y(v),class:'grid'},g);txt(g,x0-6,Y(v)+4,fmtf?fmtf(v):fmt(v),'tk','end')}}
+function legend(id,items){const L=document.getElementById(id);L.innerHTML=items.map(([c,n])=>`<span><i class="dot" style="background:${c}"></i>${n}</span>`).join('')}
+function roundTop(g,x,y,w,h,r,fill){ // bar with rounded top, square base
+  r=Math.min(r,h,w/2);const d=`M${x},${y+h}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h}Z`;return el('path',{d,fill},g)}
+
+// 1 stacked bars
+(function(){const svg=document.getElementById('c-year');const W=560,H=300,L=44,R=10,T=14,B=30;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const keys=[['US 287','var(--s287)'],['FM 156','var(--s156)'],['Avondale-Haslet Rd','var(--sah)'],['Business 287 & FM 718','var(--sbu)']];
+ legend('leg-year',keys.map(([k,c])=>[c,k]));
+ const n=D.years.length,bw=(W-L-R)/n,max=250,Y=v=>T+(1-v/max)*(H-T-B);
+ axisY(svg,L,W-R,Y,max,50);
+ D.years.forEach((y,i)=>{let acc=0;const x=L+i*bw+bw*0.18,w=bw*0.64;const tot=D.total[i];
+  keys.forEach(([k,c],j)=>{const v=D.stack[k][i];if(!v)return;const y0=Y(acc+v),h=Y(acc)-Y(acc+v);
+   const top=j===keys.length-1;const r=top?el('path',{d:'',fill:c},svg):el('rect',{x,y:y0,width:w,height:Math.max(0,h-2),fill:c},svg);
+   if(top){r.remove();roundTop(svg,x,y0,w,Math.max(0,h-2),4,c)}
+   acc+=v});
+  if(y===2026)el('rect',{x,y:Y(230),width:w,height:Y(tot)-Y(230),fill:'none',stroke:'var(--muted)','stroke-dasharray':'3 3'},svg);
+  txt(svg,x+w/2,Y(tot)-6,fmt(tot),'bv','middle');txt(svg,x+w/2,H-10,yl(y),'tk','middle');
+  const hit=el('rect',{x:L+i*bw,y:T,width:bw,height:H-T-B,fill:'transparent'},svg);
+  bindTip(hit,`<b>${yl(y)}</b>`+keys.map(([k,c])=>`<div><i class="dot" style="background:${c}"></i>${k}: ${D.stack[k][i]}</div>`).join('')+`<div class="tt">Total: ${tot}${y===2026?' (to Sep 25; pace ≈230)':''}</div>`)});
+})();
+
+// 2 index lines
+(function(){const svg=document.getElementById('c-idx');const W=520,H=300,L=40,R=86,T=14,B=30;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const ys=D.idx.years,max=500,X=i=>L+i*(W-L-R)/(ys.length-1),Y=v=>T+(1-v/max)*(H-T-B);
+ legend('leg-idx',[['var(--s287)','Crashes'],['var(--sah)','Traffic']]);
+ axisY(svg,L,W-R,Y,max,100);el('line',{x1:L,x2:W-R,y1:Y(100),y2:Y(100),stroke:'var(--ink)','stroke-width':1,'stroke-dasharray':'2 3'},svg);
+ [['crashes','var(--s287)','Crashes'],['traffic','var(--sah)','Traffic']].forEach(([k,c,n])=>{const v=D.idx[k];
+  el('path',{d:v.map((a,i)=>(i?'L':'M')+X(i)+','+Y(a)).join(''),fill:'none',stroke:c,'stroke-width':2.5,'stroke-linejoin':'round'},svg);
+  v.forEach((a,i)=>el('circle',{cx:X(i),cy:Y(a),r:3.5,fill:c,stroke:'var(--panel)','stroke-width':2},svg));
+  txt(svg,X(v.length-1)+8,Y(v[v.length-1])+4,n+' '+v[v.length-1],'ll').setAttribute('fill','var(--ink)')});
+ ys.forEach((y,i)=>{if(i%3===0||i===ys.length-1)txt(svg,X(i),H-10,y,'tk','middle');
+  const hit=el('rect',{x:X(i)-(W-L-R)/(ys.length-1)/2,y:T,width:(W-L-R)/(ys.length-1),height:H-T-B,fill:'transparent'},svg);
+  bindTip(hit,`<b>${y}</b><div><i class="dot" style="background:var(--s287)"></i>Crashes index: ${D.idx.crashes[i]}</div><div><i class="dot" style="background:var(--sah)"></i>Traffic index: ${D.idx.traffic[i]}</div>`)});
+})();
+
+// 3 rate bars
+(function(){const svg=document.getElementById('c-rate');const W=520,H=300,L=40,R=10,T=14,B=30;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const ys=Object.keys(D.rate).map(Number),n=ys.length,bw=(W-L-R)/n,max=125,Y=v=>T+(1-v/max)*(H-T-B);axisY(svg,L,W-R,Y,max,25);
+ ys.forEach((y,i)=>{const v=D.rate[y],x=L+i*bw+bw*.2,w=bw*.6;roundTop(svg,x,Y(v),w,Y(0)-Y(v),4,'var(--s287)');
+  if(i%3===0||i===n-1)txt(svg,x+w/2,H-10,y,'tk','middle');if(i===n-1||i===3)txt(svg,x+w/2,Y(v)-6,Math.round(v),'bv','middle');
+  bindTip(el('rect',{x:L+i*bw,y:T,width:bw,height:H-T-B,fill:'transparent'},svg),`<b>${y}</b><div>${v} crashes per 100 million vehicle-miles</div>`)});
+})();
+
+// 4 FM scatter
+(function(){const svg=document.getElementById('c-fm');const W=520,H=300,L=44,R=16,T=14,B=40;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const x0=10000,x1=20000,X=v=>L+(v-x0)/(x1-x0)*(W-L-R),Y=v=>T+(1-v/80)*(H-T-B);axisY(svg,L,W-R,Y,80,20);
+ for(let v=x0;v<=x1;v+=2500)txt(svg,X(v),H-B+16,(v/1000)+'k','tk','middle');txt(svg,(L+W-R)/2,H-6,'Vehicles a day on FM 156 in Haslet','tk','middle');
+ D.fm.forEach(([y,a,c])=>{const cx=X(a),cy=Y(c);const hot=y===2021||y===2022;
+  el('circle',{cx,cy,r:hot?7:5.5,fill:hot?'var(--s156)':'var(--panel)',stroke:'var(--s156)','stroke-width':2},svg);
+  const dy={2018:14,2024:12,2019:-2,2017:-4}[y]||4;txt(svg,cx+9,cy+dy,String(y),'tk');bindTip(el('circle',{cx,cy,r:14,fill:'transparent'},svg),`<b>${y}</b><div>${fmt(a)} vehicles a day</div><div>${c} crashes</div>`)});
+ txt(svg,L+4,T+10,'Crashes per year','tk');
+})();
+
+// manner bars
+function hbars(id,rows,color){const svg=document.getElementById(id);const W=520,rh=40,T=6,H=T+rows.length*rh;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const max=Math.max(...rows.map(r=>r[1])),x0=0,x1=W-56,S=v=>v/max*(x1-x0);
+ rows.forEach(([k,v],i)=>{const y=T+i*rh;txt(svg,0,y+13,k,'bl');const r=el('rect',{x:0,y:y+19,width:Math.max(2,S(v)),height:14,rx:3,fill:color},svg);txt(svg,S(v)+6,y+31,v,'bv');
+  bindTip(el('rect',{x:0,y:y,width:W,height:rh,fill:'transparent'},svg),`<b>${k}</b><div>${v} crashes</div>`)})}
+hbars('c-fmman',D.manner['FM 156'],'var(--s156)');
+hbars('c-brman',D.manner['Avondale-Haslet bridge area'],'var(--sah)');
+
+// bridge bars
+(function(){const svg=document.getElementById('c-bridge');const W=520,H=300,L=40,R=10,T=14,B=30;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const ys=Object.keys(D.bridge).map(Number).filter(y=>y>=2017),n=ys.length,bw=(W-L-R)/n,max=35,Y=v=>T+(1-v/max)*(H-T-B);axisY(svg,L,W-R,Y,max,5);
+ ys.forEach((y,i)=>{const v=D.bridge[y],x=L+i*bw+bw*.2,w=bw*.6;roundTop(svg,x,Y(v),w,Y(0)-Y(v),4,'var(--sah)');txt(svg,x+w/2,Y(v)-6,v,'bv','middle');txt(svg,x+w/2,H-10,yl(y).replace('20',"'"),'tk','middle');
+  bindTip(el('rect',{x:L+i*bw,y:T,width:bw,height:H-T-B,fill:'transparent'},svg),`<b>${yl(y)}</b><div>${v} crashes within 450 m of the bridge${y===2026?' (to Sep 25)':''}</div>`)});
+})();
+
+// hour bars
+(function(){const svg=document.getElementById('c-hour');const W=560,H=240,L=40,R=10,T=14,B=30;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const n=24,bw=(W-L-R)/n,max=Math.ceil(Math.max(...D.hours)/25)*25,Y=v=>T+(1-v/max)*(H-T-B);axisY(svg,L,W-R,Y,max,25);
+ const lab=h=>h===0?'12a':h<12?h+'a':h===12?'12p':(h-12)+'p';
+ D.hours.forEach((v,h)=>{const peak=(h>=6&&h<9)||(h>=15&&h<19);const x=L+h*bw+bw*.15,w=bw*.7;roundTop(svg,x,Y(v),w,Y(0)-Y(v),3,peak?'var(--s287)':'var(--road)');
+  if(h%3===0)txt(svg,x+w/2,H-10,lab(h),'tk','middle');
+  bindTip(el('rect',{x:L+h*bw,y:T,width:bw,height:H-T-B,fill:'transparent'},svg),`<b>${lab(h)}–${lab((h+1)%24)}</b><div>${v} crashes, 2016–2026</div>`)});
+})();
+
+// people
+(function(){const svg=document.getElementById('c-people');const W=560,H=300,L=40,R=10,T=14,B=52;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const n=D.years.length,bw=(W-L-R)/n,max=120,Y=v=>T+(1-v/max)*(H-T-B);axisY(svg,L,W-R,Y,max,20);
+ txt(svg,L-6,H-12,'Killed','tk','end');
+ D.years.forEach((y,i)=>{const v=D.injured[i],x=L+i*bw+bw*.2,w=bw*.6;roundTop(svg,x,Y(v),w,Y(0)-Y(v),4,'var(--sbu)');txt(svg,x+w/2,Y(v)-6,v,'bv','middle');
+  txt(svg,x+w/2,H-B+18,yl(y),'tk','middle');txt(svg,x+w/2,H-12,D.deaths[i],'bvk','middle');
+  bindTip(el('rect',{x:L+i*bw,y:T,width:bw,height:H-T,fill:'transparent'},svg),`<b>${yl(y)}</b><div>${v} people injured</div><div>${D.deaths[i]} killed</div><div>${D.ka[i]} fatal or serious-injury crashes</div>`)});
+})();
+
+// map
+(function(){const svg=document.getElementById('c-map');const lon0=-97.47,lon1=-97.31,lat0=32.915,lat1=33.052,K=Math.cos(33*Math.PI/180);
+ const W=640,sx=W/((lon1-lon0)*K),H=Math.round((lat1-lat0)*sx);svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const P=(lo,la)=>[((lo-lon0)*K*sx).toFixed(1),((lat1-la)*sx).toFixed(1)];
+ el('polygon',{points:D.zip.map(p=>P(p[0],p[1]).join(',')).join(' '),fill:'var(--zipfill)',stroke:'var(--zip)','stroke-width':1,'stroke-dasharray':'4 3'},svg);
+ const lbl={US0081:'US 287',FM0156:'FM 156',SH0114:'SH 114','AVONDALE HASLET RD':'Avondale-Haslet'};
+ for(const k in D.roads){const maj=/^(US|FM|SH|BU|IH)/.test(k);D.roads[k].forEach(s=>el('polyline',{points:s.map(p=>P(p[0],p[1]).join(',')).join(' '),fill:'none',stroke:maj?'var(--road-major)':'var(--road)','stroke-width':maj?2.4:1.4,'stroke-linecap':'round'},svg))}
+ D.cells.slice().sort((a,b)=>b[2]-a[2]).forEach(([la,lo,n])=>{const [x,y]=P(lo,la);const c=el('circle',{cx:x,cy:y,r:Math.sqrt(n)*1.9,fill:'var(--s287)','fill-opacity':.55,stroke:'var(--panel)','stroke-width':1},svg);bindTip(c,`<div>${n} crashes in this spot</div>`)});
+ [['US 287',-97.452,33.040],['FM 156',-97.3405,32.935],['SH 114',-97.405,33.0445],['Avondale-Haslet',-97.402,32.9635]].forEach(([s,lo,la])=>{const [x,y]=P(lo,la);txt(svg,x,y,s,'ml')});
+ const ol=document.getElementById('hotlist');
+ D.hot.forEach((h,i)=>{const [x,y]=P(h.lon,h.lat);const g=el('g',{},svg);el('circle',{cx:x,cy:y,r:10,fill:'var(--ink)'},g);const t=txt(g,x,+y+4,i+1,'mn','middle');
+  bindTip(g,`<b>${i+1}. ${h.name}</b><div>${h.n} crashes${h.note?' · '+h.note:''}</div>`);
+  const li=document.createElement('li');li.innerHTML=`<b>${h.name}</b><span>${h.n} crashes${h.note?' · '+h.note:''}</span>`;ol.appendChild(li)});
+})();
+
+// tables
+(function(){const T=document.getElementById('tables');const keys=Object.keys(D.stack);
+ let h='<div class="ttable"><table><thead><tr><th>Year</th>'+keys.map(k=>`<th>${k}</th>`).join('')+'<th>Total</th><th>Injured</th><th>Killed</th><th>Fatal or serious crashes</th><th>Near bridge</th></tr></thead><tbody>';
+ D.years.forEach((y,i)=>{h+=`<tr><td>${yl(y)}</td>`+keys.map(k=>`<td>${D.stack[k][i]}</td>`).join('')+`<td>${D.total[i]}</td><td>${D.injured[i]}</td><td>${D.deaths[i]}</td><td>${D.ka[i]}</td><td>${D.bridge[y]}</td></tr>`});
+ h+='</tbody></table></div><div class="ttable"><table><thead><tr><th>Year</th><th>US 287 traffic index</th><th>US 287 crash index</th><th>US 287 crashes per 100M vehicle-miles</th><th>FM 156 vehicles/day (Haslet)</th><th>FM 156 crashes</th></tr></thead><tbody>';
+ D.idx.years.forEach((y,i)=>{const f=D.fm[i];h+=`<tr><td>${y}</td><td>${D.idx.traffic[i]}</td><td>${D.idx.crashes[i]}</td><td>${D.rate[y]}</td><td>${fmt(f[1])}</td><td>${f[2]}</td></tr>`});
+ T.innerHTML=h+'</tbody></table></div>';})();
+})();
+</script>
+
+</body>
+</html>

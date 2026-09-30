@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>76052 Road Gaps</title>
-<meta name="description" content="Where roads in ZIP 76052 (Haslet and far north Fort Worth) haven't kept up with growth, mapped from public TxDOT, FRA, Census and city data.">
+<title>76052 Road Gaps: Full Data</title>
+<meta name="description" content="Full data and methods behind 76052 Road Gaps: every lane drop, frontage road gap and neighborhood access point in ZIP 76052.">
 <!-- Link preview for Facebook -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="Our roads haven't kept up with 76052">
-<meta property="og:description" content="A one-lane-each-way bridge, blocked rail crossings, and a 2-lane FM 156, mapped from public data.">
+<meta property="og:title" content="76052 Road Gaps: the full data">
+<meta property="og:description" content="Every lane drop, frontage-road gap and rail crossing in 76052, with sources and methods.">
 <meta property="og:image" content="https://loganlaporte.github.io/76052-road-gaps/preview.png">
-<meta property="og:url" content="https://loganlaporte.github.io/76052-road-gaps/">
+<meta property="og:url" content="https://loganlaporte.github.io/76052-road-gaps/details.html">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif;background:#f3f4f2}img{max-width:100%}[hidden]{display:none!important}</style>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -75,21 +75,8 @@ a{color:var(--fix)}
 .zone .lede{max-width:72ch}
 .facts{display:flex;flex-wrap:wrap;gap:8px 28px;font:13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
 .facts b{display:block;font:600 22px var(--display);color:var(--ink)}
-.byline{font:13px var(--mono);color:var(--muted);margin:0}
-.top{display:grid;gap:10px}
-.top h2,.act h2{font:700 clamp(22px,3vw,28px)/1.1 var(--display);margin:0}
-.top5{margin:0;padding-left:1.4em;display:grid;gap:8px;max-width:78ch}
-.top5 li{font-size:16px}
-.top5 li::marker{font:700 18px var(--display);color:var(--high)}
-.top5 a{font:600 12px var(--mono);margin-left:4px}
-.act{display:grid;gap:12px;border-top:4px solid var(--fix);padding-top:18px}
-.actgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:grid;gap:6px;align-content:start;min-width:0}
-.card h3{font:600 20px var(--display);margin:0}
-.card p{margin:0;font-size:14px}
-.contact{font:13px var(--mono);color:var(--muted)}
-.sel{user-select:all;color:var(--ink)}
 .foot{font:12px var(--mono);color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+.byline{font:13px var(--mono);color:var(--muted);margin:0}.byline a{color:inherit}
 .sitenav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font:600 13px var(--mono);margin:0 0 14px;padding:0 0 10px;border-bottom:1px solid var(--line)}.sitenav a{color:var(--ink);text-decoration:none}.sitenav a[aria-current]{color:var(--muted);pointer-events:none}.sitenav a:not([aria-current]){text-decoration:underline;text-underline-offset:3px}
 </style>
 
@@ -97,23 +84,12 @@ a{color:var(--fix)}
 <body>
 <div class="wrap">
 <header>
-<nav class="sitenav" aria-label="76052 Road Gaps pages">76052 Road Gaps · <a href="https://loganlaporte.github.io/76052-road-gaps/" aria-current="page">Summary &amp; what you can do</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/details.html">Full data &amp; methods</a></nav>
-  <div class="eyebrow">ZIP 76052 · Haslet &amp; far north Fort Worth · Updated September 30, 2026</div>
-  <h1>Our roads haven't kept up with 76052</h1>
-  <p class="lede">The ZIP grew from 15,995 people in 2010 to 26,675 in 2020, and satellite images show building hasn't slowed since. This page maps where the road network hasn't caught up: 4-lane roads that squeeze to 2, a one-lane-each-way bridge on the main road out of Sendera, rail crossings that trains block, and new neighborhoods served by rural roads. Everything here comes from public data, and each spot was checked on aerial imagery. Traffic counts are TxDOT's annual averages (AADT, vehicles per day).</p>
-  <p class="byline">Independent analysis by a 76052 resident using public data. The ZIP spans Tarrant, Denton and Wise counties, and every finding lists its county and who to ask. Not affiliated with TxDOT, the City of Fort Worth, the Town of Haslet, any of the three counties, or BNSF.</p>
+<nav class="sitenav" aria-label="76052 Road Gaps pages">76052 Road Gaps · <a href="https://loganlaporte.github.io/76052-road-gaps/">Summary &amp; what you can do</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/details.html" aria-current="page">Full data &amp; methods</a></nav>
+  <div class="eyebrow">ZIP 76052 · Haslet &amp; far north Fort Worth · Full data &amp; methods · Updated September 30, 2026</div>
+  <h1>76052 Road Gaps: the full data</h1>
+  <p class="lede">This is the detailed companion to the <a href="https://loganlaporte.github.io/76052-road-gaps/">76052 Road Gaps summary</a>. Every mapped road in the ZIP was checked for spots where a 4-lane road narrows to 2, using TxDOT's 2023 roadway inventory and OpenStreetMap lane tags, and each spot was confirmed on aerial imagery. It also covers US 287's frontage roads and about 213 miles of neighborhood streets, where the question changes from "where do lanes drop" to "how many homes share each way out." Traffic counts are TxDOT's annual averages (AADT, vehicles per day).</p>
+  <p class="byline">Independent analysis by a 76052 resident using public data. The ZIP spans Tarrant, Denton and Wise counties, and every finding lists its county and who to ask. Not affiliated with TxDOT, the City of Fort Worth, the Town of Haslet, any of the three counties, or BNSF. <a href="https://loganlaporte.github.io/76052-road-gaps/#act">Who to contact and how →</a></p>
 </header>
-
-<section class="top" aria-labelledby="top-h">
-  <h2 id="top-h">The five biggest gaps</h2>
-  <ol class="top5">
-    <li><b>The Avondale-Haslet bridge over US 287 is one lane each way</b>, squeezed between a 4–5 lane road and the Saginaw signal. It's the main way out for more than 10,500 homes. <a href="#area-j">J9</a></li>
-    <li><b>FM 156 through Haslet is still 2 lanes</b> but carries up to about 16,800 vehicles a day. TxDOT is studying a widening with no construction date. <a href="#map">B</a></li>
-    <li><b>Avondale-Haslet crosses the BNSF tracks in Haslet at grade</b>, and people have filed 197 reports of trains blocking it. <a href="#area-j">J3</a></li>
-    <li><b>New Northstar Pkwy crosses the tracks at grade</b> just 48 m from the next intersection, while new subdivisions go up on both sides. <a href="#area-j">J1</a></li>
-    <li><b>A neighborhood of about 750 homes connects straight onto US 287</b>, where there's no frontage road, into about 59,000 vehicles a day. <a href="#map">G</a></li>
-  </ol>
-</section>
 
 <div class="grid">
   <div class="mapbox">
@@ -143,7 +119,7 @@ a{color:var(--fix)}
 <section class="zone" id="area-j">
   <div class="eyebrow">Close-up · Area J · Sendera Ranch and Avondale-Haslet</div>
   <h2>Area J: choke points and odd intersections</h2>
-  <p class="lede">Area J sits between two BNSF rail lines. Every road west to US 287 except one crosses the tracks at grade, and so does the main road east to Haslet. The one road that passes under the tracks is Barnwood Dr, off John Day Rd, and the direct road to it hasn't been built. Area J also spans all three counties: most of Sendera is in Tarrant, the north side is in Denton, and Northstar Pkwy's rail crossing (J1) and its dead end at US 287 (J6) are in unincorporated Wise County. Each intersection was checked on the newest high-resolution imagery (January 3, 2026, 0.34 m) and compared Sentinel-2 satellite passes from September 10, 2025 and September 15, 2026 to see what's been built since.</p>
+  <p class="lede">Area J sits between two BNSF rail lines. Every road west to US 287 except one crosses the tracks at grade, and so does the main road east to Haslet. The one road that passes under the tracks is Barnwood Dr, off John Day Rd, and the direct road to it hasn't been built. Area J also spans all three counties: most of Sendera is in Tarrant, the north side is in Denton, and Northstar Pkwy's rail crossing (J1) and its dead end at US 287 (J6) are in unincorporated Wise County. Each intersection was checked on the newest high-resolution imagery (January 3, 2026, 0.34 m) and compared against Sentinel-2 satellite passes from September 10, 2025 and September 15, 2026 to see what's been built since.</p>
   <div class="facts">
     <span><b>10,500+</b>homes on the tax rolls, plus ≈1,100 new lots</span>
     <span><b>0</b>local road bridges over the tracks west of Sendera</span>
@@ -164,25 +140,11 @@ a{color:var(--fix)}
   </div>
 </section>
 
-<section class="act" id="act" aria-labelledby="act-h">
-  <h2 id="act-h">What you can do</h2>
-  <div class="actgrid">
-    <div class="card"><h3>Tell TxDOT</h3><p>US 287, its frontage roads, the Avondale-Haslet bridge and FM 156 are state roads. Two TxDOT districts split this ZIP. Ask that the Avondale-Haslet bridge and the FM 156 widening be funded, and name the spots on this page.</p>
-      <p class="contact"><b>Fort Worth District</b> (Tarrant and Wise: US 287, the bridge, FM 156 in Haslet) · <span class="sel">817-370-6500</span> · <a href="https://www.txdot.gov/about/contact-us/ask-a-general-question.html?id=ftw-email" target="_blank" rel="noopener">Email</a><br><b>Dallas District</b> (Denton: FM 156 north of Haslet, SH 114) · <span class="sel">214-320-6200</span> · Denton area office <span class="sel">940-387-1414</span><br><a href="https://www.txdot.gov/projects/projects-studies/fort-worth/us81us-287-corridor.html" target="_blank" rel="noopener">US 287 projects</a> · <a href="https://www.keepitmovingdallas.com/projects/fm-roads/fm156" target="_blank" rel="noopener">FM 156 project</a></p></div>
-    <div class="card"><h3>Report blocked crossings</h3><p>Each time a train blocks Avondale-Haslet, Northstar Pkwy or Blue Mound Rd, file a report with the Federal Railroad Administration. These reports are the numbers on this page, and more reports build the case.</p>
-      <p class="contact"><a href="https://www.fra.dot.gov/blockedcrossings/" target="_blank" rel="noopener">FRA Blocked Crossing Incident Reporter</a></p></div>
-    <div class="card"><h3>Speak at a council or commissioners court</h3><p>Signals and Avondale-Haslet are city decisions. The Northstar rail crossing and its dead end at US 287 are in unincorporated Wise County, so that ask goes to the Wise County Commissioners Court. Public comment is usually open for about three minutes per person.</p>
-      <p class="contact"><a href="https://www.fortworthtexas.gov/residents/my-neighborhood/my-council-districts" target="_blank" rel="noopener">Fort Worth council district</a> · Town of Haslet council<br><a href="https://www.tarrantcountytx.gov/en/elections/interactive-maps/commissioner-precinct-maps.html" target="_blank" rel="noopener">Tarrant precincts</a> · <a href="https://apps.dentoncounty.gov/website/PctSearch/Precinct-Search.aspx" target="_blank" rel="noopener">Denton precinct search</a> · <a href="https://www.co.wise.tx.us/159/Commissioners-Court" target="_blank" rel="noopener">Wise Commissioners Court</a></p></div>
-    <div class="card"><h3>Comment on the regional plan</h3><p>The North Central Texas Council of Governments decides which projects get federal and state money. Its long-range plan and project list take public comments at regular meetings.</p>
-      <p class="contact"><a href="https://nctcog.org/trans/plan/mtp/mobility-2050/public-input-summary" target="_blank" rel="noopener">NCTCOG Mobility 2050 public input</a></p></div>
-  </div>
-</section>
-
 <section class="notes">
   <div>
     <h2>How to read this</h2>
     <p>A 2-lane arterial usually starts to break down somewhere around 13,000 to 17,000 vehicles a day, depending on signals, driveways and turn lanes. That's a rule-of-thumb planning range, not a TxDOT standard. So a lane drop matters most when the 2-lane side still carries that much traffic.</p>
-    <p>Neighborhood areas were built by grouping connected streets, counting the building footprints in each, and counting every place a street in that area meets an outside road. A detached home generates about 9.4 vehicle trips on a weekday (ITE's standard planning rate). Most fire codes, including IFC Appendix D, call for a second access road once a development passes 30 homes, unless the homes have sprinklers.</p>
+    <p>For neighborhoods, connected streets were grouped into areas. For each area, the analysis counted building footprints and every place a street in that area meets an outside road. A detached home generates about 9.4 vehicle trips on a weekday (ITE's standard planning rate). Most fire codes, including IFC Appendix D, call for a second access road once a development passes 30 homes, unless the homes have sprinklers.</p>
   </div>
   <div>
     <h2>Limits of the data</h2>
@@ -216,7 +178,7 @@ a{color:var(--fix)}
     </ul>
   </div>
 </section>
-<div class="foot">Map data © OpenStreetMap contributors (ODbL). Roadway and rail-crossing data: TxDOT, including FRA figures. Imagery used for review: Esri World Imagery and Copernicus Sentinel-2 data (2025–2026). Coordinates are approximate, to about 50 m. Tap a finding to highlight it on the map. Found an error? Corrections are welcome. <a href="https://loganlaporte.github.io/76052-road-gaps/details.html">See the full data and methods</a>.</div>
+<div class="foot">Map data © OpenStreetMap contributors (ODbL). Roadway and rail-crossing data: TxDOT, including FRA figures. Imagery used for review: Esri World Imagery and Copernicus Sentinel-2 data (2025–2026). Coordinates are approximate, to about 50 m. Tap a finding to highlight it on the map. Found an error? Corrections are welcome. <a href="https://loganlaporte.github.io/76052-road-gaps/">Back to the summary</a>.</div>
 </div>
 
 <script>
@@ -401,7 +363,7 @@ const JF=[
  {id:'J1',lvl:'high',t:'Northstar Pkwy crosses the tracks next to an intersection',lat:32.9957,lon:-97.4167,stats:[['Trains/day','18'],['Tracks to next intersection','≈48 m'],['Crashes 2019–24','1']],
   p:'Northstar is a new 4-lane divided parkway, but it crosses BNSF\'s Wichita Falls line at grade. The Bates Aston Rd / CR 4925 intersection sits about 48 m west of the tracks, which is room for about six cars before a queue backs onto the crossing. New subdivisions are going in on both sides: streets graded by January 2026 were paved by September. The crossing\'s official traffic count is from 2021 (50 vehicles a day), before most of these homes existed. Northstar, the Wise County community this parkway serves, is planned for about 3,500 homes, and about 1,500 were built by early 2024.',s:'TxDOT/FRA crossing data; OSM; Esri Jan 2026 + Sentinel-2 Sep 2026'},
  {id:'J2',lvl:'high',t:'Avondale-Haslet Rd at the western BNSF tracks',lat:32.9688,lon:-97.4041,stats:[['AADT','7,080 (2024)'],['Trains/day','24'],['Blocked-crossing reports','42']],
-  p:'The 2-lane road crosses the tracks at grade, with driveways and a side street within about 100 m on both sides. It\'s inside the stretch Fort Worth is widening to 4 lanes. The published project materials don\'t mention a bridge over the tracks.',s:'TxDOT/FRA crossing data; Esri Jan 2026'},
+  p:'The 2-lane road crosses the tracks at grade, with driveways and a side street within about 100 m on both sides. It\'s inside the stretch Fort Worth is widening to 4 lanes. Published project materials don\'t mention a bridge over the tracks.',s:'TxDOT/FRA crossing data; Esri Jan 2026'},
  {id:'J3',lvl:'high',t:'Avondale-Haslet Rd at the BNSF tracks in Haslet',lat:32.9700,lon:-97.3544,stats:[['AADT','7,021 (2020)'],['Trains/day','18'],['Blocked-crossing reports','197']],
   p:'Sendera\'s main route east toward Haslet and FM 156 crosses BNSF\'s Fort Worth line at grade. It has 197 blocked-crossing reports, the most of any crossing in or around 76052 in TxDOT\'s crossing data. The next crossing south, on Blue Mound Rd, is also at grade and has 69 reports. The only way around it that trains can\'t block is Barnwood Dr (J10), which passes under the tracks.',s:'TxDOT/FRA crossing data'},
  {id:'J9',lvl:'high',t:'The Avondale-Haslet bridge over US 287',lat:32.96793,lon:-97.4187,stats:[['Bridge','1 lane each way (confirmed on the ground)'],['East approach','4–5 lanes'],['Signals within 350 m','Saginaw + frontage road'],['Last count','12,920 (2019)']],

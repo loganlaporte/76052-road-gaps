@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>76052 Road Gaps: Highway Triangle</title>
+<meta name="description" content="TxDOT crash, traffic and lane data for the US 287, SH 114 and I-35W triangle around Haslet and Alliance, 2016 to 2026: where the state rebuilt, crashes barely rose; where it didn't, they grew up to four times.">
+<!-- Link preview for Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Where they rebuilt, crashes barely rose. Where they didn't, up to 4× more.">
+<meta property="og:description" content="94 killed and 4,686 injured on and inside the US 287 / SH 114 / I-35W triangle since 2016, from TxDOT's own crash records.">
+<meta property="og:image" content="https://loganlaporte.github.io/76052-road-gaps/triangle-preview.png">
+<meta property="og:url" content="https://loganlaporte.github.io/76052-road-gaps/triangle.html">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif;background:#f3f4f2}img{max-width:100%}[hidden]{display:none!important}</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: map + finding list side by side on desktop, stacked on phone; method notes below */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --ink:#1e2327; --muted:#5d666d; --line:#d6dad8;
+  --road:#8f989e; --road-major:#4a5359; --zip:#1e2327; --zipfill:#e8ebe7;
+  --stripe:#d9a300; --high:#c8372d; --med:#d17a00; --low:#4f7f3a; --gone:#8a8f93; --fix:#2f6fb0;
+  --front:#0f8a83; --hood:#7a5cc4; --rail:#6b4a2f; --new:#b8860b;
+  --display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15191c; --panel:#1d2226; --ink:#e7eae8; --muted:#9aa3a9; --line:#343b40;
+  --road:#566067; --road-major:#98a2a8; --zip:#e7eae8; --zipfill:#20262a;
+  --stripe:#f0bd2a; --high:#ef6a5f; --med:#f0a040; --low:#86b86d; --gone:#80878c; --fix:#6aa6e6;
+  --front:#3fc2b9; --hood:#a88cf0; --rail:#c9a27e; --new:#e6b84a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15191c; --panel:#1d2226; --ink:#e7eae8; --muted:#9aa3a9; --line:#343b40;
+  --road:#566067; --road-major:#98a2a8; --zip:#e7eae8; --zipfill:#20262a;
+  --stripe:#f0bd2a; --high:#ef6a5f; --med:#f0a040; --low:#86b86d; --gone:#80878c; --fix:#6aa6e6;
+  --front:#3fc2b9; --hood:#a88cf0; --rail:#c9a27e; --new:#e6b84a; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body)}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 48px;display:grid;gap:28px}
+header{display:grid;gap:8px;border-bottom:4px solid var(--stripe);padding-bottom:18px}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(30px,5vw,46px)/1.05 var(--display);margin:0;text-wrap:balance;letter-spacing:.01em}
+.lede{max-width:68ch;margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.mapbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;display:grid;gap:10px;min-width:0}
+svg{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font:12px var(--mono);color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+.list{display:grid;gap:12px;min-width:0}
+.f{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:6px;padding:14px 16px;display:grid;gap:6px;cursor:pointer}
+.f:focus-visible,.f.on{outline:2px solid var(--c);outline-offset:2px}
+.fh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.id{font:700 15px var(--mono);color:var(--c)}
+.fh h3{font:600 20px/1.2 var(--display);margin:0;letter-spacing:.01em}
+.pill{margin-left:auto;font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:99px;border:1px solid var(--c);color:var(--c);white-space:nowrap}
+.stats{display:flex;flex-wrap:wrap;gap:4px 18px;font:13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.stats b{color:var(--ink);font-weight:500}
+.f p{margin:0;font-size:14px}
+.src{font:12px var(--mono);color:var(--muted)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px 32px}
+.notes h2{font:600 22px var(--display);margin:0 0 6px}
+.notes p,.notes li{font-size:14px;max-width:62ch}
+.notes ul{padding-left:18px;margin:0;display:grid;gap:4px}
+a{color:var(--fix)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:600 12px var(--mono);letter-spacing:.04em;text-transform:uppercase;padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tabs button:focus-visible{outline:2px solid var(--stripe);outline-offset:2px}
+.grp{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.zone{display:grid;gap:14px;border-top:4px solid var(--hood);padding-top:18px}
+.zone h2{font:700 clamp(24px,3.6vw,34px)/1.1 var(--display);margin:0;text-wrap:balance}
+.zone .lede{max-width:72ch}
+.facts{display:flex;flex-wrap:wrap;gap:8px 28px;font:13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.facts b{display:block;font:600 22px var(--display);color:var(--ink)}
+.byline{font:13px var(--mono);color:var(--muted);margin:0}
+.top{display:grid;gap:10px}
+.top h2,.act h2{font:700 clamp(22px,3vw,28px)/1.1 var(--display);margin:0}
+.top5{margin:0;padding-left:1.4em;display:grid;gap:8px;max-width:78ch}
+.top5 li{font-size:16px}
+.top5 li::marker{font:700 18px var(--display);color:var(--high)}
+.top5 a{font:600 12px var(--mono);margin-left:4px}
+.act{display:grid;gap:12px;border-top:4px solid var(--fix);padding-top:18px}
+.actgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:grid;gap:6px;align-content:start;min-width:0}
+.card h3{font:600 20px var(--display);margin:0}
+.card p{margin:0;font-size:14px}
+.contact{font:13px var(--mono);color:var(--muted)}
+.sel{user-select:all;color:var(--ink)}
+.foot{font:12px var(--mono);color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+.sitenav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font:600 13px var(--mono);margin:0 0 14px;padding:0 0 10px;border-bottom:1px solid var(--line)}.sitenav a{color:var(--ink);text-decoration:none}.sitenav a[aria-current]{color:var(--muted);pointer-events:none}.sitenav a:not([aria-current]){text-decoration:underline;text-underline-offset:3px}
+.traffic{display:grid;gap:14px;border-top:4px solid var(--high);padding-top:18px}
+.traffic h2{font:700 clamp(24px,3.6vw,34px)/1.1 var(--display);margin:0;text-wrap:balance}
+.traffic h3{font:600 20px var(--display);margin:6px 0 0}
+.traffic .lede{max-width:72ch}
+.chartbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;min-width:0;overflow:hidden}
+.chartbox .tk{font:12px var(--mono);fill:var(--muted)}.chartbox .ll{font:600 13px var(--mono)}.chartbox .bl{font:600 15px var(--body);fill:var(--ink)}.chartbox .bv{font:600 14px var(--mono);fill:var(--ink)}
+.tnote{font:12px var(--mono);color:var(--muted);max-width:90ch;margin:0}
+.ttable{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px}.ttable table{border-collapse:collapse;width:100%;min-width:560px;font:14px var(--body);font-variant-numeric:tabular-nums}.ttable th{font:600 12px var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}.ttable td{padding:10px 12px;border-bottom:1px solid var(--line)}.ttable tr:last-child td{border-bottom:0}.ttable td:first-child{font-weight:600}.ttable small{color:var(--muted)}.ttable .bad{color:var(--high);font-weight:600}.ttable .warn{color:var(--med);font-weight:600}
+.tgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}@media (max-width:860px){.tgrid{grid-template-columns:1fr}}
+
+:root{--s287:#c8372d;--sah:#2f6fb0;--sbu:#d17a00;--s156:#7a5cc4}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--s287:#e65a50;--sah:#5a96d6;--sbu:#c97d22;--s156:#9679e0}}
+:root[data-theme="dark"]{--s287:#e65a50;--sah:#5a96d6;--sbu:#c97d22;--s156:#9679e0}
+.sec{display:grid;gap:14px;border-top:4px solid var(--line);padding-top:18px}
+.sec h2{font:700 clamp(24px,3.6vw,34px)/1.1 var(--display);margin:0;text-wrap:balance}
+.sec h3,.chartbox h3,.cols h3{font:600 20px var(--display);margin:0}
+#us287,#bridge{border-top-color:var(--high)}#fm156{border-top-color:var(--hood)}
+.chartbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;min-width:0;display:grid;gap:8px}
+.chartbox svg{width:100%;height:auto;overflow:visible}
+.chartbox .tk,svg .tk{font:12px var(--mono);fill:var(--muted)}svg .ll{font:600 13px var(--mono)}svg .bl{font:600 14px var(--body);fill:var(--ink)}svg .bv{font:600 13px var(--mono);fill:var(--ink)}svg .bvk{font:700 14px var(--mono);fill:var(--high)}
+svg .ml{font:600 12px var(--mono);fill:var(--ink);paint-order:stroke;stroke:var(--zipfill);stroke-width:3px}svg .mn{font:700 12px var(--mono);fill:var(--bg)}
+svg .grid{stroke:var(--line);stroke-width:1}
+.hit{cursor:default;outline:none}.hit:focus-visible{outline:2px solid var(--stripe)}
+.tgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}@media (max-width:860px){.tgrid{grid-template-columns:1fr}}
+.tnote{font:12px var(--mono);color:var(--muted);max-width:90ch;margin:0}
+.facts.big b{font-size:clamp(26px,4vw,38px)}.facts.big span{max-width:22ch}
+.hot{margin:0;padding-left:1.6em;display:grid;gap:10px;align-content:start}.hot li{display:grid;gap:2px}.hot li::marker{font:700 16px var(--mono);color:var(--ink)}.hot b{font-weight:600}.hot span{font:13px var(--mono);color:var(--muted)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px 32px}.cols ul{padding-left:18px;margin:6px 0 0;display:grid;gap:6px}.cols li,.cols p{font-size:14px;max-width:62ch}.cols p{margin:6px 0 0}
+#meaning{border-top-color:var(--stripe)}
+#tip{position:fixed;z-index:10;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:13px var(--body);box-shadow:0 4px 16px rgba(0,0,0,.18);max-width:260px;display:grid;gap:2px}
+#tip b{font-weight:600}#tip .tt{font-weight:600;margin-top:2px}#tip .dot{margin-right:6px;vertical-align:-1px}
+.tables summary{cursor:pointer;font:600 14px var(--mono)}.tables{display:grid;gap:12px}
+.ttable{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px;margin-top:12px}.ttable table{border-collapse:collapse;width:100%;min-width:640px;font:13px var(--body);font-variant-numeric:tabular-nums}.ttable th{font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}.ttable td{padding:7px 10px;border-bottom:1px solid var(--line)}
+
+:root{--gap:var(--sbu);--built:var(--sah);--proj:color-mix(in srgb,var(--s287) 40%,var(--panel))}
+#gap-35w,#gap-114,#gap-287,#gaps{border-top-color:var(--high)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <nav class="sitenav" aria-label="76052 Road Gaps pages">76052 Road Gaps · <a href="https://loganlaporte.github.io/76052-road-gaps/">Summary &amp; what you can do</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/details.html">Full data &amp; methods</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/crashes.html">Crashes</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/triangle.html" aria-current="page">Highway triangle</a></nav>
+  <div class="eyebrow">US 287 · SH 114 · I-35W and everything inside · TxDOT data, January 2016 to September 27, 2026</div>
+  <h1>The highway triangle: where the state rebuilt, and where it didn't</h1>
+  <p class="lede">US 287, SH 114 and I-35W form a triangle of about 54 square miles around Haslet, Alliance and far north Fort Worth. The <a href="https://loganlaporte.github.io/76052-road-gaps/">76052 pages</a> look at the roads inside one ZIP code. This page steps back to the whole triangle and all three highways around it, using the same TxDOT crash records, traffic counts and road inventory.</p>
+  <p class="lede">It works almost like a natural experiment. One side, I-35W south of Eagle Parkway, got a major rebuild with toll lanes that opened in 2023. There, crashes per mile driven held steady even as traffic grew. The other sides are still two lanes each way: I-35W north of Eagle Parkway, SH 114 and US 287. On those stretches, crashes grew 1.8 to 4.4 times between 2019 and 2025.</p>
+  <p class="byline">Independent analysis by a 76052 resident. Crash data comes from TxDOT's Crash Records Information System (CRIS), which compiles Texas peace officer crash reports. As TxDOT requires, the analysis and conclusions here are the author's own and not those of the State of Texas or TxDOT. This is not affiliated with TxDOT, the City of Fort Worth, the City of Haslet, Northlake, or Tarrant, Denton or Wise County.</p>
+</header>
+
+<div class="facts big" aria-label="Totals, 2016 through September 27, 2026">
+  <span><b>10,346</b>reported crashes on the three highways and every road inside the triangle</span>
+  <span><b>4,686</b>people injured</span>
+  <span><b>94</b>people killed</span>
+  <span><b>405</b>crashes that killed someone or caused a serious injury</span>
+  <span><b>≈1,430</b>crashes expected in 2026 at this year's pace, a new high (785 in 2016)</span>
+</div>
+
+<section class="sec" id="map" aria-labelledby="h-map">
+  <h2 id="h-map">The triangle and its gaps</h2>
+  <p class="lede">Circles show where crashes happened from 2016 to 2026, sized by count. The thick colored lines are the three stretches that are still two lanes each way and where crashes are climbing fastest. The numbered spots are the biggest clusters. The dashed outline is ZIP 76052.</p>
+  <div class="grid">
+    <div class="chartbox"><svg id="c-map" role="img" aria-label="Map of the US 287, SH 114 and I-35W triangle with circles sized by crash count, the three two-lane gaps highlighted, and numbered hotspots"></svg>
+      <div class="legend"><span><i class="dot" style="background:var(--s287)"></i>Circle area = crashes in that spot</span><span><i style="width:18px;height:4px;background:var(--gap);display:inline-block;border-radius:2px"></i>Still 2 lanes each way, crashes rising fastest</span><span><i style="width:18px;height:4px;background:var(--built);display:inline-block;border-radius:2px"></i>I-35W rebuilt with toll lanes (2023)</span></div></div>
+    <ol class="hot" id="hotlist"></ol>
+  </div>
+  <p class="tnote">Hotspots are areas about 400 m across, named for the nearest interchange. The I-35W clusters run together because the whole corridor is busy. Numbers in brackets compare 2016–18 with 2023–25.</p>
+</section>
+
+<section class="sec" id="by-year" aria-labelledby="h-year">
+  <h2 id="h-year">Crashes per year, by road</h2>
+  <p class="lede">Every reported crash on the three highways (including their frontage roads) and on every road inside the triangle. Crashes held at roughly 735–840 a year through 2020 and have run at 940–1,260 since. 2026 is counted only through September 27 and is on pace for about 1,430.</p>
+  <div class="chartbox"><div class="legend" id="leg-year"></div><svg id="c-year" role="img" aria-label="Stacked bar chart of crashes per year by road in the highway triangle, 2016 to 2026"></svg></div>
+  <p class="tnote">* 2026 covers January 1 to September 27. The dashed outline shows the full-year pace. US 287 appears in TxDOT's records as US 81, which shares the road through this area.</p>
+</section>
+
+<section class="sec" id="gaps" aria-labelledby="h-gaps">
+  <h2 id="h-gaps">Rebuilt vs. not rebuilt</h2>
+  <p class="lede">Each line is one stretch of highway, indexed so its 2017–19 average equals 100. The rebuilt part of I-35W, which gained toll lanes, auxiliary lanes and frontage roads in 2020–23, has about the same number of crashes it had before. The three stretches still at two lanes each way have doubled, tripled or more.</p>
+  <div class="tgrid">
+    <div class="chartbox"><h3>Crashes per year, indexed (2017–19 = 100)</h3><div class="legend" id="leg-gap"></div><svg id="c-gap" role="img" aria-label="Line chart comparing crash growth on four highway stretches, indexed to their 2017 to 2019 average"></svg><p class="tnote">2026 is shown at its full-year pace. The dip in 2020 is the pandemic.</p></div>
+    <div class="chartbox"><h3>Crashes a year, 2017–19 average vs. 2025</h3><svg id="c-gapbar" role="img" aria-label="Paired bar chart of crashes a year on four highway stretches, 2017 to 2019 average compared with 2025"></svg><p class="tnote">Deaths since 2016 are shown for each stretch.</p></div>
+  </div>
+  <div class="facts">
+    <span><b>≈3.0×</b>SH 114 between US 287 and FM 156, 2025 vs. 2017–19</span>
+    <span><b>≈4.2×</b>US 287 from Haslet to SH 114, same comparison</span>
+    <span><b>≈1.6×</b>I-35W between Eagle Pkwy and SH 114, not rebuilt</span>
+    <span><b>≈1.2×</b>I-35W south of Eagle Pkwy, rebuilt</span>
+  </div>
+</section>
+
+<section class="sec" id="gap-35w" aria-labelledby="h-35w">
+  <h2 id="h-35w">Gap 1: I-35W from Eagle Parkway to SH 114</h2>
+  <p class="lede">The North Tarrant Express rebuild of I-35W (segment 3C) added four toll lanes, auxiliary lanes and frontage roads from North Tarrant Parkway to Eagle Parkway. It opened in June 2023. It stops at Eagle Parkway. From there to SH 114, about 2.5 miles, satellite imagery shows I-35W is back to <strong>two lanes each way with no toll lanes</strong>. All of that traffic funnels into the SH 114 interchange, the second-biggest crash cluster in the triangle.</p>
+  <div class="facts">
+    <span><b>90,890</b>vehicles a day at the Eagle Pkwy count station in 2025, up from 72,690 in 2019</span>
+    <span><b>≈95%</b>of what two lanes can carry in the busy direction at rush hour, now</span>
+    <span><b>≈114%</b>by 2030 if traffic keeps growing at its 2019–25 pace</span>
+    <span><b>629</b>crashes at the I-35W / SH 114 interchange since 2016, 3 people killed</span>
+  </div>
+</section>
+
+<section class="sec" id="gap-114" aria-labelledby="h-114">
+  <h2 id="h-114">Gap 2: SH 114 from US 287 to FM 156</h2>
+  <p class="lede">For about nine miles, SH 114 is a rural four-lane divided highway: two lanes each way, a 70 mph limit, 17–18% trucks, and at-grade median crossings and driveways. New subdivisions now line its north side. It gets an interchange only at FM 156. Traffic near FM 156 went from about 23,000 vehicles a day in 2019 to 43,000 in 2025, growing about 11% a year.</p>
+  <div class="facts">
+    <span><b>34 → 107</b>crashes a year, 2019 vs. 2025</span>
+    <span><b>8</b>people killed on this stretch since 2016</span>
+    <span><b>≈63% → 106%</b>of rush-hour capacity, 2025 vs. 2030 at the current growth rate</span>
+    <span><b>Over half</b>of crashes here happen at an intersection, median crossing or driveway</span>
+  </div>
+</section>
+
+<section class="sec" id="gap-287" aria-labelledby="h-287">
+  <h2 id="h-287">Gap 3: US 287, two lanes each way for all 14 miles</h2>
+  <p class="lede">US 287 is a freeway with one-way access roads, but its main lanes are two each way from I-35W all the way to SH 114. At the south end near North Tarrant Parkway and Harmon Road it carries about 81,000 vehicles a day, 22% of them trucks. The north end, from Haslet to SH 114, carries less traffic, but it has had the fastest crash growth and the most deaths of any stretch in the triangle.</p>
+  <div class="tgrid">
+    <div class="chartbox"><h3>Crash rate on the three highways</h3><div class="legend" id="leg-rate"></div><svg id="c-rate" role="img" aria-label="Line chart of crashes per 100 million vehicle-miles on I-35W, SH 114 and US 287, 2016 to 2025"></svg><p class="tnote">Crashes per 100 million vehicle-miles: crashes divided by miles driven, using TxDOT's count stations and each highway's length along the triangle (US 287 14.3 mi, SH 114 11.3 mi, I-35W 10.2 mi). This removes the effect of there simply being more cars.</p></div>
+    <div class="chartbox"><h3>Deaths per 100 crashes, 2016–2026</h3><svg id="c-sev" role="img" aria-label="Bar chart of deaths per 100 crashes on I-35W, SH 114 and US 287"></svg><p class="tnote">US 287 has the fewest crashes of the three highways but the most deaths: 28. Higher speeds (70 mph) make each crash more likely to be deadly.</p></div>
+  </div>
+  <div class="facts">
+    <span><b>14 → 62</b>crashes a year from Haslet to SH 114, 2019 vs. 2025</span>
+    <span><b>10</b>people killed on that stretch since 2016</span>
+    <span><b>≈84% → 116%</b>of rush-hour capacity at the south end, 2025 vs. 2030</span>
+    <span><b>40 → 88</b>crashes at the Avondale-Haslet interchange, 2016–18 vs. 2023–25, 5 killed</span>
+  </div>
+</section>
+
+<section class="sec" id="capacity" aria-labelledby="h-cap">
+  <h2 id="h-cap">Rush-hour load on the two-lane stretches</h2>
+  <p class="lede">A rough estimate of how full each stretch is in the busy direction at the peak hour. It uses TxDOT's own peak-hour and direction factors for each road, and the traffic a lane can carry after adjusting for trucks. These are the same rules of thumb used on the <a href="https://loganlaporte.github.io/76052-road-gaps/#traffic">76052 traffic section</a>. Above 100% means queues form every day.</p>
+  <div class="chartbox"><svg id="c-vc" role="img" aria-label="Bar chart of rush-hour load as a share of capacity for four highway stretches, 2025 and 2030 projection"></svg><div class="legend"><span><i class="dot" style="background:var(--s287)"></i>2025</span><span><i class="dot" style="background:var(--proj)"></i>2030 if 2019–25 growth continues</span></div></div>
+  <p class="tnote">US 287 north of Haslet has only one count station with a short history, so no 2030 figure is shown. Its problem is crashes at speed rather than volume. The I-35W figure uses the count station just south of Eagle Parkway, which TxDOT's inventory applies to the stretch north of it too.</p>
+</section>
+
+<section class="sec" id="when" aria-labelledby="h-when">
+  <h2 id="h-when">When crashes happen</h2>
+  <p class="lede">Crashes by hour of day across the whole triangle. The evening rush from 3 to 7 pm is the worst part of the day: 46% of all crashes happen in the two commute windows, which cover 7 of the day's 24 hours.</p>
+  <div class="chartbox"><svg id="c-hour" role="img" aria-label="Bar chart of crashes by hour of day, with rush hours highlighted"></svg><div class="legend"><span><i class="dot" style="background:var(--s287)"></i>Rush hours (6–9 am, 3–7 pm)</span><span><i class="dot" style="background:var(--road)"></i>Other hours</span></div></div>
+</section>
+
+<section class="sec" id="people" aria-labelledby="h-people">
+  <h2 id="h-people">People hurt and killed</h2>
+  <p class="lede">About 310–375 people a year were injured before 2021. In 2025 it was 588, and 2026 had reached 524 by late September.</p>
+  <div class="chartbox"><h3>People injured per year, with deaths</h3><svg id="c-people" role="img" aria-label="Bar chart of people injured per year in the highway triangle with deaths shown beneath each year"></svg><p class="tnote">* 2026 through September 27. Injured includes every injury level on the crash report, from possible to serious. Behind every number is a person, and this page doesn't list any personal details.</p></div>
+</section>
+
+<section class="sec notes-wide" id="meaning" aria-labelledby="h-mean">
+  <h2 id="h-mean">What this shows, and what it can't</h2>
+  <div class="cols">
+    <div>
+      <h3>What the data shows</h3>
+      <ul>
+        <li>Crashes in the triangle rose from about 785 a year to about 1,260 in 2025, and 2026 is on pace for about 1,430.</li>
+        <li>Where I-35W was rebuilt, crashes per mile driven held steady while traffic grew.</li>
+        <li>On the three stretches still at two lanes each way, crashes grew 1.6 to 4.2 times between 2017–19 and 2025.</li>
+        <li>US 287 has the most deaths of the three highways, and SH 114's crashes have tripled as subdivisions filled in along a rural highway.</li>
+        <li>I-35W north of Eagle Parkway and US 287 at its south end are near rush-hour capacity now. At current growth, SH 114 joins them by about 2030.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What it can't prove</h3>
+      <ul>
+        <li>This is a correlation. More people, new drivers, more trucks, distracted driving and construction all play a part. A crash report doesn't say whether a wider road would have prevented it.</li>
+        <li>The rebuilt part of I-35W is not a perfect control group. Its interchanges, frontage roads and speeds differ from the other stretches.</li>
+        <li>We can't say how many of the 94 deaths better roads would have prevented.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>The question for TxDOT and the region</h3>
+      <p>The state has already shown what a rebuild does on one side of this triangle. The other sides carry the same fast-growing traffic on roads built for a rural area. Residents deserve clear dates for I-35W from Eagle Parkway to SH 114, for SH 114 west of FM 156, and for US 287 from I-35W to SH 114.</p>
+      <p><a href="https://loganlaporte.github.io/76052-road-gaps/#act">Who to contact and how →</a></p>
+    </div>
+  </div>
+</section>
+
+<section class="notes">
+  <div>
+    <h2>How this was built</h2>
+    <p>Crash records come from TxDOT's public CRIS query tool. One map-area query was run for 2016 through September 27, 2026, using the triangle traced along the three highways and widened slightly so crashes on both sides of each highway, including frontage roads, are counted. Crashes are assigned to a road by the highway listed on the report, or the street name when there's none.</p>
+    <p>Crash rates divide crashes by vehicle-miles: the average of TxDOT's count stations on each highway, times 365 days, times the highway's length along the triangle. Lane counts come from TxDOT's 2023 Roadway Inventory and were checked against 2026 satellite imagery. Rush-hour load is traffic times TxDOT's peak-hour (K) and direction (D) factors, divided by 2,250 vehicles per lane per hour (2,200 on SH 114) reduced for the share of trucks.</p>
+  </div>
+  <div>
+    <h2>Limits of the data</h2>
+    <ul>
+      <li>Because the triangle is widened slightly, some crashes on the far-side frontage road of each highway are included. That's intended: they're crashes on the boundary highways.</li>
+      <li>CRIS includes only crashes reported by police on a state crash form (usually one with an injury or at least $1,000 of damage).</li>
+      <li>TxDOT's 2023 inventory had not yet recorded the new I-35W toll lanes. Satellite imagery was used for the rebuilt section.</li>
+      <li>2030 figures carry the 2019–25 growth rate forward. Growth could slow or speed up.</li>
+      <li>US 287 numbers here cover all 14 miles. The stretch inside ZIP 76052 has a higher rate. See the <a href="https://loganlaporte.github.io/76052-road-gaps/crashes.html">76052 crash page</a>.</li>
+    </ul>
+  </div>
+  <div>
+    <h2>Sources</h2>
+    <ul>
+      <li><a href="https://cris.dot.state.tx.us/public/Query/app/home" target="_blank" rel="noopener">TxDOT Crash Records Information System (CRIS) public query</a>, data as of September 30, 2026</li>
+      <li><a href="https://services.arcgis.com/KTcxiTD9dsQw4r7Z/ArcGIS/rest/services/TxDOT_AADT_Annuals_(Public_View)/FeatureServer/0" target="_blank" rel="noopener">TxDOT AADT Annuals</a> and 5-year urban counts (traffic)</li>
+      <li><a href="https://services.arcgis.com/KTcxiTD9dsQw4r7Z/ArcGIS/rest/services/Roadway_Inventory_2023/FeatureServer/0" target="_blank" rel="noopener">TxDOT Roadway Inventory 2023</a> (lanes, rush-hour factors, road lines)</li>
+      <li><a href="https://www.txdot.gov/projects/projects-studies/fort-worth/north-tarrant-express.html" target="_blank" rel="noopener">TxDOT: North Tarrant Express</a> and <a href="https://en.wikipedia.org/wiki/North_Tarrant_Express" target="_blank" rel="noopener">segment 3C overview</a> (opened June 2023)</li>
+      <li>Satellite imagery: Google Maps, 2026 (Airbus, Maxar, Vexcel)</li>
+    </ul>
+  </div>
+</section>
+
+<details class="tables">
+  <summary>Show the numbers as tables</summary>
+  <div id="tables"></div>
+</details>
+
+<div class="foot">Crash data: TxDOT CRIS, compiled from Texas Peace Officer's Crash Reports (CR-3); analysis and conclusions are the author's own, not those of the State of Texas or TxDOT. Road lines: TxDOT Roadway Inventory. <a href="https://loganlaporte.github.io/76052-road-gaps/">Back to the summary</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/crashes.html">76052 crashes</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/details.html">Full data &amp; methods</a>. Found an error? Corrections are welcome.</div>
+</div>
+<div id="tip" role="tooltip" hidden></div>
+
+<script>window.TRI={"years":[2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026],"stack":{"I-35W":[353,346,393,372,391,506,411,408,288,464,334],"US 287":[67,68,50,72,61,90,124,142,136,177,143],"SH 114":[90,144,102,73,67,118,115,125,167,190,131],"FM 156":[62,57,24,28,46,79,96,80,58,77,68],"Other roads inside":[213,226,206,190,250,284,281,277,294,350,382]},"total":[785,841,775,735,815,1077,1027,1032,943,1258,1058],"inj":[368,339,335,311,374,512,429,480,426,588,524],"dead":[9,11,7,6,6,7,6,12,15,3,12],"ka":[34,44,28,19,29,37,37,42,38,51,46],"rates":{"I-35W":{"aadt":[63172,75388,79806,85879,76439,82865,82888,85138,97710,105340],"n":[353,346,393,372,391,506,411,408,288,464],"rate":[149.5,122.8,131.7,115.9,136.8,163.4,132.7,128.2,78.9,117.8]},"SH 114":{"aadt":[23693,21270,20020,20930,20113,26063,31047,29917,30553,40230],"n":[90,144,102,73,67,118,115,125,167,190],"rate":[92.1,164.1,123.5,84.5,80.7,109.7,89.8,101.3,132.5,114.5]},"US 287":{"aadt":[33338,33985,35540,42172,41330,43145,50022,58212,56075,60182],"n":[67,68,50,72,61,90,124,142,136,177],"rate":[38.5,38.4,27.0,32.7,28.3,40.0,47.5,46.8,46.5,56.4]}},"rateYears":[2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],"segs":{"I-35W, Eagle Pkwy to SH 114 (not rebuilt)":[47,56,46,42,29,57,58,74,56,77,69],"I-35W, US 287 to Eagle Pkwy (rebuilt 2020\u201323)":[306,290,347,330,362,449,353,334,232,387,265],"SH 114, US 287 to FM 156 (rural 4-lane)":[29,35,39,34,18,32,66,71,82,107,71],"US 287, Haslet to SH 114":[24,13,17,14,9,18,46,46,48,62,49]},"segdead":{"I-35W, Eagle Pkwy to SH 114 (not rebuilt)":7,"I-35W, US 287 to Eagle Pkwy (rebuilt 2020\u201323)":20,"SH 114, US 287 to FM 156 (rural 4-lane)":8,"US 287, Haslet to SH 114":10},"hours":[194,163,164,139,174,304,515,615,487,342,376,436,498,535,622,779,828,798,708,395,343,368,329,234],"rush":46,"bins":[[-97.4632,33.0449,21],[-97.4583,33.0418,4],[-97.4602,33.0431,6],[-97.4578,33.0462,3],[-97.4537,33.0373,9],[-97.4561,33.0399,5],[-97.4514,33.034,4],[-97.4524,33.036,45],[-97.445,33.026,105],[-97.4457,33.04,3],[-97.4403,33.0166,3],[-97.4412,33.0189,4],[-97.4432,33.0231,8],[-97.4435,33.0263,11],[-97.4427,33.0381,47],[-97.4363,33.0061,3],[-97.4375,33.0089,26],[-97.4385,33.0117,79],[-97.4395,33.0145,4],[-97.4386,33.02,3],[-97.4319,32.9947,5],[-97.4331,32.9977,7],[-97.4345,33.0015,9],[-97.4354,33.0035,5],[-97.4343,33.0369,12],[-97.4304,32.9908,6],[-97.4311,32.9928,16],[-97.4296,33.0368,13],[-97.4239,32.9769,13],[-97.4248,32.9795,18],[-97.4264,32.9826,8],[-97.4253,33.0368,7],[-97.4205,32.9682,129],[-97.4211,32.9722,40],[-97.422,32.9755,5],[-97.4208,33.0368,5],[-97.416,32.9662,23],[-97.4168,32.9679,97],[-97.4171,32.9827,4],[-97.4163,32.9871,5],[-97.4156,32.991,7],[-97.417,32.9953,5],[-97.416,33.0368,5],[-97.4115,32.9631,13],[-97.4134,32.9645,16],[-97.413,32.9684,29],[-97.412,32.9934,3],[-97.4079,32.9608,25],[-97.4085,32.9688,19],[-97.4084,32.9902,3],[-97.408,33.0368,7],[-97.404,32.9583,9],[-97.4033,32.9689,15],[-97.4033,33.0368,6],[-97.3986,32.9549,11],[-97.3988,32.9689,45],[-97.398,32.9752,4],[-97.3985,32.9789,6],[-97.398,32.983,4],[-97.3988,32.9854,3],[-97.3997,33.0367,47],[-97.3938,32.9516,10],[-97.3954,32.9528,7],[-97.395,32.9691,8],[-97.3946,32.9785,3],[-97.3955,32.987,9],[-97.3949,32.9895,10],[-97.3956,33.0368,7],[-97.3899,32.9471,15],[-97.3916,32.9506,44],[-97.392,32.9547,3],[-97.392,32.9582,3],[-97.3919,32.9614,5],[-97.3919,32.9656,13],[-97.3913,32.9689,68],[-97.3893,32.978,3],[-97.3903,32.9879,13],[-97.3911,32.9891,3],[-97.3916,33.0361,53],[-97.3862,32.9467,27],[-97.3858,32.969,15],[-97.3861,32.973,3],[-97.3863,32.9865,6],[-97.3866,32.9905,5],[-97.3868,33.0359,15],[-97.3822,32.9438,16],[-97.382,32.969,53],[-97.3816,32.9717,5],[-97.3819,32.9759,3],[-97.382,32.9785,6],[-97.3825,32.9833,26],[-97.3822,32.9861,5],[-97.3816,33.0358,18],[-97.3769,32.9395,3],[-97.3769,32.9463,7],[-97.3783,32.9689,5],[-97.3783,32.9841,8],[-97.3781,32.9867,13],[-97.3768,33.016,8],[-97.3764,33.0285,6],[-97.3775,33.0358,8],[-97.373,32.9366,7],[-97.3726,32.9398,3],[-97.3743,32.9462,5],[-97.3732,32.9689,5],[-97.3723,32.9867,15],[-97.3729,32.9908,3],[-97.3732,32.9943,5],[-97.3742,32.9968,3],[-97.3734,33.0161,13],[-97.3752,33.0286,6],[-97.3738,33.0357,45],[-97.3697,32.9339,10],[-97.3703,32.9353,8],[-97.3689,32.9689,9],[-97.3703,32.9875,8],[-97.3681,32.9898,17],[-97.369,33.0161,5],[-97.3696,33.0356,10],[-97.3638,32.9293,6],[-97.3663,32.9318,4],[-97.3637,32.9462,5],[-97.3657,32.9698,19],[-97.3647,32.9907,4],[-97.3644,33.0161,8],[-97.3658,33.0356,6],[-97.3601,32.9259,13],[-97.3622,32.9279,3],[-97.3617,32.9461,18],[-97.359,32.97,19],[-97.3615,32.9903,11],[-97.3592,32.9934,4],[-97.3607,33.0154,10],[-97.3608,33.0355,4],[-97.3559,32.9225,21],[-97.3573,32.9243,71],[-97.3551,32.97,4],[-97.3547,32.9862,4],[-97.3561,32.9911,4],[-97.3571,32.9925,4],[-97.3582,33.0145,3],[-97.3567,33.0355,6],[-97.3515,32.9183,9],[-97.3533,32.9205,5],[-97.3514,32.9242,9],[-97.3532,32.9461,5],[-97.3503,32.9611,23],[-97.3536,32.9654,7],[-97.3522,32.9699,42],[-97.3508,32.9718,3],[-97.3517,32.9847,5],[-97.3523,33.0353,4],[-97.3515,33.0355,9],[-97.3484,32.9152,46],[-97.3489,32.9175,7],[-97.3488,32.9208,38],[-97.3487,32.9246,36],[-97.3488,32.9281,14],[-97.3488,32.9324,14],[-97.3487,32.9366,18],[-97.3487,32.9437,20],[-97.3486,32.9468,59],[-97.3486,32.9511,10],[-97.3486,32.954,13],[-97.3493,32.9581,13],[-97.3492,32.9605,9],[-97.3483,32.9736,22],[-97.348,32.9747,95],[-97.3497,32.9783,5],[-97.3496,32.9843,11],[-97.3474,33.0352,11],[-97.348,33.0355,31],[-97.3419,32.9086,4],[-97.3441,32.9116,7],[-97.3434,32.9242,10],[-97.3432,32.9738,7],[-97.343,32.9799,3],[-97.342,32.9836,6],[-97.3422,32.9881,10],[-97.343,32.9899,24],[-97.3424,32.995,8],[-97.3424,32.9975,21],[-97.3421,33.0049,4],[-97.3424,33.0354,17],[-97.3381,32.9044,13],[-97.3405,32.9071,21],[-97.3383,32.9112,6],[-97.3386,32.9152,9],[-97.3399,32.9242,8],[-97.3384,32.9493,12],[-97.3396,32.974,5],[-97.339,32.9898,3],[-97.3389,33.011,7],[-97.3388,33.0297,4],[-97.3388,33.0353,15],[-97.3389,33.0355,4],[-97.3332,32.8984,11],[-97.3339,32.9004,42],[-97.3362,32.9027,19],[-97.3348,32.9077,10],[-97.3364,32.9114,7],[-97.3342,32.9147,18],[-97.3349,32.9175,5],[-97.3338,32.9241,27],[-97.3363,32.9488,7],[-97.3351,32.9739,19],[-97.3358,32.9898,5],[-97.3342,33.035,22],[-97.3345,33.0359,4],[-97.3307,32.8977,93],[-97.3316,32.9003,113],[-97.3304,32.905,22],[-97.3316,32.9074,58],[-97.3314,32.9118,19],[-97.3306,32.9145,34],[-97.3309,32.9177,22],[-97.331,32.9218,10],[-97.3314,32.9242,14],[-97.3315,32.9288,8],[-97.3306,32.9313,5],[-97.3302,32.9739,5],[-97.3299,32.9875,7],[-97.3297,33.019,5],[-97.3301,33.0352,49],[-97.3299,33.0354,10],[-97.3257,32.8937,32],[-97.3265,32.8973,16],[-97.3256,32.8996,28],[-97.3263,32.9045,10],[-97.3253,32.9145,26],[-97.3256,32.919,10],[-97.3254,32.9215,10],[-97.3271,32.9254,22],[-97.3249,32.928,5],[-97.325,32.9312,5],[-97.3277,32.968,27],[-97.3272,32.9738,67],[-97.3277,32.9761,7],[-97.3274,32.9792,9],[-97.3273,32.9831,7],[-97.328,32.9854,3],[-97.3267,33.0186,27],[-97.3253,33.0349,19],[-97.3264,33.0372,3],[-97.3213,32.8902,25],[-97.3237,32.8917,29],[-97.3216,32.8982,25],[-97.3218,32.9,148],[-97.3223,32.9039,52],[-97.3226,32.9072,7],[-97.3232,32.9108,13],[-97.3221,32.9146,72],[-97.3214,32.9184,3],[-97.3227,32.9329,43],[-97.3227,32.9359,7],[-97.3225,32.939,3],[-97.3225,32.9421,13],[-97.3211,32.9734,27],[-97.321,32.9747,4],[-97.3224,33.0183,7],[-97.3226,33.0343,46],[-97.3172,32.8858,61],[-97.3173,32.8899,82],[-97.3172,32.8926,140],[-97.3173,32.897,338],[-97.3172,32.9012,246],[-97.3175,32.9045,77],[-97.3172,32.9078,40],[-97.3171,32.9101,251],[-97.3171,32.9146,296],[-97.3172,32.9176,203],[-97.3172,32.9218,34],[-97.3172,32.9255,182],[-97.3167,32.9295,46],[-97.3159,32.9326,179],[-97.3189,32.9423,16],[-97.3187,32.9474,6],[-97.3173,32.959,7],[-97.3178,32.9612,7],[-97.3181,32.9723,9],[-97.3164,33.0064,3],[-97.3181,33.0083,9],[-97.3169,33.0115,6],[-97.318,33.0177,8],[-97.3164,33.0307,3],[-97.3187,33.0327,14],[-97.315,32.9336,57],[-97.3142,32.9373,165],[-97.3133,32.9401,31],[-97.3123,32.9431,151],[-97.3114,32.9461,14],[-97.3115,32.9592,20],[-97.3125,32.9722,38],[-97.3117,32.9759,5],[-97.3145,33.0064,3],[-97.3124,33.0067,5],[-97.3146,33.0163,5],[-97.3144,33.0188,86],[-97.3121,33.022,4],[-97.3126,33.0303,19],[-97.3102,32.9419,8],[-97.3107,32.9485,105],[-97.3106,32.9511,36],[-97.3105,32.9547,143],[-97.31,32.9589,242],[-97.3104,32.9616,123],[-97.3103,32.9652,48],[-97.3097,32.969,92],[-97.3089,32.9725,205],[-97.3083,32.9753,63],[-97.3076,32.9791,27],[-97.3083,33.0073,5],[-97.3107,33.0242,17],[-97.31,33.0262,9],[-97.3092,33.0292,117],[-97.3067,32.9723,3],[-97.3066,32.9806,5],[-97.3055,32.9825,52],[-97.3043,32.986,34],[-97.3057,32.9911,11],[-97.3052,33.0072,8],[-97.3045,33.0188,7],[-97.3047,33.0276,39],[-97.3019,32.9878,29],[-97.2996,32.9911,13],[-97.2988,32.9927,25],[-97.2988,33.0016,3],[-97.2996,33.0202,4],[-97.2985,33.0227,4],[-97.3004,33.0269,68],[-97.2974,32.9943,21],[-97.2949,32.9978,48],[-97.2972,33.0016,37],[-97.2953,33.0207,4],[-97.2958,33.0267,28],[-97.2928,33.0007,96],[-97.2906,33.0044,15],[-97.2936,33.0267,55],[-97.2892,33.0058,21],[-97.2877,33.0081,9],[-97.2857,33.0107,4],[-97.2875,33.0205,3],[-97.2878,33.0264,96],[-97.2842,33.0125,63],[-97.2825,33.0152,31],[-97.2829,33.0201,9],[-97.284,33.0235,3],[-97.2835,33.0266,97],[-97.2795,33.0195,40],[-97.2787,33.0228,51],[-97.2787,33.0265,136],[-97.2759,33.0237,43],[-97.2737,33.0263,418],[-97.2723,33.0265,6]],"hot":[{"name":"I-35W at N Tarrant Pkwy / US 287 split","n":718,"lat":32.8989,"lon":-97.3181,"dead":1,"ka":13,"inj":310,"e":192,"l":167},{"name":"I-35W at SH 114","n":629,"lat":33.0259,"lon":-97.2753,"dead":3,"ka":22,"inj":314,"e":187,"l":183},{"name":"I-35W at Heritage Trace Pkwy","n":576,"lat":32.9126,"lon":-97.3173,"dead":1,"ka":13,"inj":252,"e":172,"l":142},{"name":"I-35W at SH 170 / Alliance Gateway","n":427,"lat":32.9579,"lon":-97.3102,"dead":3,"ka":16,"inj":229,"e":103,"l":131},{"name":"I-35W at Golden Triangle Blvd","n":396,"lat":32.9347,"lon":-97.315,"dead":1,"ka":7,"inj":179,"e":105,"l":105},{"name":"I-35W at Westport Pkwy","n":373,"lat":32.9719,"lon":-97.3094,"dead":1,"ka":7,"inj":119,"e":93,"l":95},{"name":"US 287 at Avondale-Haslet / Business 287","n":265,"lat":32.968,"lon":-97.4185,"dead":5,"ka":11,"inj":123,"e":40,"l":88},{"name":"US 287 at Harmon Rd / N Tarrant Pkwy","n":252,"lat":32.8993,"lon":-97.3317,"dead":1,"ka":5,"inj":87,"e":69,"l":78},{"name":"I-35W at Eagle Pkwy","n":178,"lat":33.0002,"lon":-97.2942,"dead":3,"ka":7,"inj":98,"e":41,"l":57},{"name":"SH 114 at FM 156","n":162,"lat":33.0287,"lon":-97.3078,"dead":3,"ka":10,"inj":98,"e":49,"l":43}],"geo":{"US":[[-97.4733,33.0469],[-97.4705,33.0462],[-97.4649,33.045],[-97.4638,33.0446],[-97.4611,33.0436],[-97.4579,33.0416],[-97.4561,33.0399],[-97.4546,33.0382],[-97.4494,33.0314],[-97.4452,33.0259],[-97.4431,33.0229],[-97.4412,33.0188],[-97.4385,33.0117],[-97.431,32.9923],[-97.4305,32.9912],[-97.4288,32.9874],[-97.4252,32.98],[-97.4209,32.9709],[-97.4203,32.9701],[-97.4187,32.9682],[-97.4183,32.9678],[-97.4169,32.9667],[-97.4134,32.9644],[-97.4071,32.9603],[-97.4056,32.9593],[-97.3995,32.9554],[-97.3857,32.9464],[-97.3847,32.9456],[-97.3774,32.9399],[-97.3682,32.9328],[-97.3612,32.9273],[-97.359,32.9255],[-97.3579,32.9246],[-97.357,32.9236],[-97.3523,32.9193],[-97.3488,32.9159],[-97.3478,32.915],[-97.3451,32.9121],[-97.3416,32.9083],[-97.3405,32.9071],[-97.3347,32.9011],[-97.3317,32.8986],[-97.3307,32.8978],[-97.3252,32.8933],[-97.3198,32.889],[-97.3173,32.886]],"I":[[-97.3173,32.8789],[-97.3173,32.8833],[-97.3172,32.886],[-97.3172,32.8877],[-97.3172,32.892],[-97.3172,32.8933],[-97.3172,32.895],[-97.3172,32.8997],[-97.3172,32.9146],[-97.3171,32.9268],[-97.316,32.9318],[-97.3154,32.9335],[-97.313,32.941],[-97.3113,32.9463],[-97.3106,32.9492],[-97.3105,32.9585],[-97.3105,32.9622],[-97.3102,32.9667],[-97.309,32.9723],[-97.3078,32.9775],[-97.3069,32.9801],[-97.3056,32.9824],[-97.3015,32.9884],[-97.2995,32.9913],[-97.2994,32.9915],[-97.2969,32.995],[-97.2919,33.0021],[-97.284,33.0132],[-97.2814,33.0168],[-97.2783,33.0212],[-97.2742,33.0258],[-97.2736,33.0264],[-97.2698,33.0304],[-97.269,33.0314]],"S":[[-97.4649,33.045],[-97.4616,33.0457],[-97.4598,33.0461],[-97.4585,33.0462],[-97.4554,33.0459],[-97.4532,33.0449],[-97.4513,33.0435],[-97.4447,33.0395],[-97.4424,33.0381],[-97.4413,33.0377],[-97.4394,33.0371],[-97.437,33.0369],[-97.4322,33.0369],[-97.43,33.0369],[-97.4258,33.0369],[-97.4184,33.0368],[-97.4132,33.0368],[-97.4051,33.0368],[-97.3971,33.0367],[-97.3919,33.0361],[-97.3891,33.0359],[-97.3709,33.0356],[-97.3658,33.0355],[-97.3602,33.0355],[-97.3482,33.0354],[-97.3328,33.0353],[-97.321,33.0337],[-97.3161,33.0317],[-97.3093,33.0292],[-97.3071,33.0284],[-97.3036,33.0271],[-97.2939,33.0267],[-97.2839,33.0266],[-97.2761,33.0265],[-97.2736,33.0265],[-97.2706,33.0268],[-97.2691,33.0269]],"F":[[-97.3013,33.0548],[-97.3021,33.051],[-97.3056,33.0413],[-97.3074,33.0358],[-97.309,33.0307],[-97.3108,33.0242],[-97.3116,33.0217],[-97.3135,33.0194],[-97.3166,33.0179],[-97.3237,33.0182],[-97.3328,33.0166],[-97.3401,33.0096],[-97.3423,33.0045],[-97.3424,32.9929],[-97.3422,32.9883],[-97.3425,32.9808],[-97.3473,32.9751],[-97.3498,32.9727],[-97.3524,32.9692],[-97.3536,32.9639],[-97.351,32.9616],[-97.3498,32.9605],[-97.3494,32.9585],[-97.3488,32.9551],[-97.3486,32.9461],[-97.3488,32.9317],[-97.3488,32.9197],[-97.3487,32.9168],[-97.3488,32.9138],[-97.3489,32.909],[-97.3489,32.9053],[-97.3489,32.895],[-97.3483,32.8938],[-97.3463,32.8905],[-97.344,32.8863],[-97.3425,32.8828],[-97.3425,32.8799]],"B":[[-97.3105,32.9591],[-97.3074,32.9591],[-97.3043,32.9599],[-97.3032,32.9603],[-97.3021,32.9611],[-97.2984,32.9639],[-97.2967,32.965],[-97.2932,32.9668],[-97.2878,32.9687],[-97.2759,32.9731],[-97.2697,32.9759]]},"zip":[[-97.461,33.045],[-97.456,33.042],[-97.452,33.036],[-97.453,33.036],[-97.442,33.021],[-97.431,32.992],[-97.421,32.971000000000004],[-97.421,32.957],[-97.409,32.957],[-97.418,32.948],[-97.419,32.943],[-97.418,32.94],[-97.409,32.94],[-97.409,32.947],[-97.409,32.94],[-97.407,32.94],[-97.407,32.93],[-97.406,32.93],[-97.405,32.924],[-97.375,32.924],[-97.375,32.925],[-97.373,32.925],[-97.373,32.924],[-97.332,32.924],[-97.332,32.948],[-97.317,32.948],[-97.317,32.962],[-97.321,32.962],[-97.32,32.973],[-97.325,32.974000000000004],[-97.325,32.969],[-97.327,32.969],[-97.328,32.967],[-97.337,32.968],[-97.337,32.974000000000004],[-97.348,32.974000000000004],[-97.328,32.991],[-97.317,33.01],[-97.319,33.01],[-97.319,33.016],[-97.323,33.016],[-97.323,33.018],[-97.327,33.019],[-97.332,33.017],[-97.34,33.009],[-97.341,33.008],[-97.348,33.008],[-97.346,33.005],[-97.351,33.005],[-97.351,33.007],[-97.353,33.012],[-97.353,33.021],[-97.35,33.028],[-97.355,33.031],[-97.359,33.03],[-97.365,33.032000000000004],[-97.367,33.035000000000004],[-97.372,33.032000000000004],[-97.376,33.032000000000004],[-97.379,33.03],[-97.382,33.031],[-97.384,33.03],[-97.387,33.03],[-97.389,33.031],[-97.391,33.03],[-97.394,33.032000000000004],[-97.395,33.03],[-97.397,33.032000000000004],[-97.397,33.037],[-97.439,33.037],[-97.443,33.038000000000004],[-97.454,33.045],[-97.457,33.046],[-97.461,33.045]],"poly":[[-97.465,33.045],[-97.457,33.041],[-97.445,33.026],[-97.441,33.019],[-97.438,33.012],[-97.431,32.992],[-97.429,32.987],[-97.421,32.971],[-97.413,32.964],[-97.408,32.961],[-97.403,32.958],[-97.387,32.947],[-97.362,32.928],[-97.359,32.925],[-97.352,32.919],[-97.349,32.916],[-97.344,32.911],[-97.34,32.907],[-97.332,32.899],[-97.327,32.895],[-97.319,32.888],[-97.317,32.886],[-97.317,32.891],[-97.317,32.896],[-97.317,32.915],[-97.317,32.926],[-97.315,32.933],[-97.313,32.941],[-97.311,32.949],[-97.31,32.959],[-97.309,32.972],[-97.308,32.977],[-97.306,32.982],[-97.302,32.988],[-97.297,32.995],[-97.293,33.0],[-97.284,33.013],[-97.281,33.017],[-97.275,33.025],[-97.275,33.026],[-97.287,33.027],[-97.294,33.027],[-97.302,33.027],[-97.307,33.028],[-97.315,33.031],[-97.32,33.033],[-97.326,33.035],[-97.333,33.035],[-97.341,33.035],[-97.349,33.035],[-97.36,33.035],[-97.366,33.035],[-97.371,33.036],[-97.391,33.036],[-97.397,33.037],[-97.403,33.037],[-97.411,33.037],[-97.417,33.037],[-97.426,33.037],[-97.431,33.037],[-97.437,33.037],[-97.442,33.038],[-97.451,33.043],[-97.458,33.046],[-97.463,33.045]],"vc":[{"name":"I-35W N of Eagle Pkwy (2 GP lanes/dir, no TEXpress)","aadt2025":90890,"cagr":3.8,"aadt2030":109500.0,"peak_dir":3806,"vc2025":0.95,"vc2030":1.14},{"name":"US 287 at N Tarrant/Harmon (2 lanes/dir)","aadt2025":81110,"cagr":6.7,"aadt2030":112100.0,"peak_dir":3089,"vc2025":0.84,"vc2030":1.16},{"name":"US 287 north of Haslet (2 lanes/dir)","aadt2025":42090,"cagr":null,"aadt2030":null,"peak_dir":1603,"vc2025":0.44,"vc2030":null},{"name":"SH 114 west of FM 156 (2 lanes/dir, at-grade)","aadt2025":43040,"cagr":10.9,"aadt2030":72300.0,"peak_dir":2371,"vc2025":0.63,"vc2030":1.06}]};
+(function(){
+const D=window.TRI;
+const NS='http://www.w3.org/2000/svg';
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+const txt=(p,x,y,s,cls,anchor)=>{const t=el('text',{x,y,class:cls||'tk','text-anchor':anchor||'start'},p);t.textContent=s;return t};
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+const PACE=365/270;
+const tip=document.getElementById('tip');
+function bindTip(node,html){node.setAttribute('tabindex','0');node.classList.add('hit');
+  const show=e=>{tip.innerHTML=html;tip.hidden=false;const r=(e.touches?e.touches[0]:e);let x=(r.clientX||0)+14,y=(r.clientY||0)+14;
+    if(!r.clientX){const b=node.getBoundingClientRect();x=b.left+b.width/2;y=b.top-8}
+    const w=tip.offsetWidth,h=tip.offsetHeight;if(x+w>innerWidth-8)x=innerWidth-w-8;if(y+h>innerHeight-8)y=y-h-28;tip.style.left=x+'px';tip.style.top=y+'px'};
+  node.addEventListener('mousemove',show);node.addEventListener('focus',show);node.addEventListener('touchstart',show,{passive:true});
+  node.addEventListener('mouseleave',()=>tip.hidden=true);node.addEventListener('blur',()=>tip.hidden=true)}
+const yl=y=>y===2026?'2026*':String(y);
+function axisY(g,x0,x1,Y,max,step,f){for(let v=0;v<=max+1e-9;v+=step){el('line',{x1:x0,x2:x1,y1:Y(v),y2:Y(v),class:'grid'},g);txt(g,x0-6,Y(v)+4,f?f(v):fmt(v),'tk','end')}}
+function legend(id,items){document.getElementById(id).innerHTML=items.map(([c,n])=>`<span><i class="dot" style="background:${c}"></i>${n}</span>`).join('')}
+function roundTop(g,x,y,w,h,r,fill){r=Math.min(r,h,w/2);if(h<=0)return;const d=`M${x},${y+h}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h}Z`;return el('path',{d,fill},g)}
+function roundRight(g,x,y,w,h,r,fill){r=Math.min(r,w,h/2);if(w<=0)return;const d=`M${x},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h-r}Q${x+w},${y+h} ${x+w-r},${y+h}H${x}Z`;return el('path',{d,fill},g)}
+const SEGC=['var(--s156)','var(--sah)','var(--sbu)','var(--s287)'];
+const SEGN=Object.keys(D.segs);
+const SEGS=['I-35W, Eagle Pkwy to SH 114','I-35W, rebuilt section','SH 114, US 287 to FM 156','US 287, Haslet to SH 114'];
+
+// map
+(function(){const svg=document.getElementById('c-map');const lon0=-97.478,lon1=-97.262,lat0=32.874,lat1=33.058,K=Math.cos(33*Math.PI/180);
+ const W=640,sx=W/((lon1-lon0)*K),H=Math.round((lat1-lat0)*sx);svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const P=(lo,la)=>[((lo-lon0)*K*sx).toFixed(1),((lat1-la)*sx).toFixed(1)];
+ const pts=a=>a.map(p=>P(p[0],p[1]).join(',')).join(' ');
+ el('polygon',{points:pts(D.poly),fill:'var(--zipfill)',stroke:'none'},svg);
+ el('polygon',{points:pts(D.zip),fill:'none',stroke:'var(--zip)','stroke-width':1.2,'stroke-dasharray':'4 3'},svg);
+ const G=D.geo;
+ ['F','B'].forEach(k=>el('polyline',{points:pts(G[k]),fill:'none',stroke:'var(--road)','stroke-width':1.8,'stroke-linecap':'round'},svg));
+ ['US','I','S'].forEach(k=>el('polyline',{points:pts(G[k]),fill:'none',stroke:'var(--road-major)','stroke-width':2.6,'stroke-linecap':'round'},svg));
+ D.bins.slice().sort((a,b)=>b[2]-a[2]).forEach(([lo,la,n])=>{const [x,y]=P(lo,la);const c=el('circle',{cx:x,cy:y,r:Math.sqrt(n)*0.95,fill:'var(--s287)','fill-opacity':.5,stroke:'var(--panel)','stroke-width':.8},svg);bindTip(c,`<div>${fmt(n)} crashes in this spot</div>`)});
+ const over=(a,c)=>el('polyline',{points:pts(a),fill:'none',stroke:c,'stroke-width':5,'stroke-linecap':'round','stroke-opacity':.85},svg);
+ over(G.I.filter(p=>p[1]>=32.897&&p[1]<=33.0),'var(--built)');
+ over(G.I.filter(p=>p[1]>=32.998),'var(--gap)');
+ over(G.S.filter(p=>p[0]<=-97.309),'var(--gap)');
+ over(G.US.filter(p=>p[1]>=32.99),'var(--gap)');
+ [['US 287',-97.414,32.9795],['SH 114',-97.405,33.0445],['I-35W',-97.300,32.93],['FM 156',-97.3445,32.945],['SH 170',-97.285,32.962]].forEach(([s,lo,la])=>{const [x,y]=P(lo,la);txt(svg,x,y,s,'ml',s==='I-35W'||s==='SH 170'?'start':'middle')});
+ [['Eagle Pkwy',-97.30,33.004]].forEach(([s,lo,la])=>{const [x,y]=P(lo,la);txt(svg,x-6,y,s,'ml','end')});
+ const ol=document.getElementById('hotlist');
+ D.hot.forEach((h,i)=>{const [x,y]=P(h.lon,h.lat);const g=el('g',{},svg);el('circle',{cx:x,cy:y,r:10,fill:'var(--ink)'},g);txt(g,x,+y+4,i+1,'mn','middle');
+  const note=`${fmt(h.n)} crashes · ${h.dead} killed · [${h.e} → ${h.l}]`;
+  bindTip(g,`<b>${i+1}. ${h.name}</b><div>${fmt(h.n)} crashes, ${h.inj} injured, ${h.dead} killed</div><div>2016–18: ${h.e} · 2023–25: ${h.l}</div>`);
+  const li=document.createElement('li');li.innerHTML=`<b>${h.name}</b><span>${note}</span>`;ol.appendChild(li)});
+})();
+
+// stacked years
+(function(){const svg=document.getElementById('c-year');const W=900,H=320,L=48,R=10,T=14,B=30;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const keys=[['I-35W','var(--sah)'],['US 287','var(--s287)'],['SH 114','var(--sbu)'],['FM 156','var(--s156)'],['Other roads inside','var(--road)']];
+ legend('leg-year',keys.map(([k,c])=>[c,k]));
+ const n=D.years.length,bw=(W-L-R)/n,max=1500,Y=v=>T+(1-v/max)*(H-T-B);
+ axisY(svg,L,W-R,Y,max,250);
+ D.years.forEach((y,i)=>{let acc=0;const x=L+i*bw+bw*0.18,w=bw*0.64,tot=D.total[i];
+  keys.forEach(([k,c],j)=>{const v=D.stack[k][i];if(!v)return;const y0=Y(acc+v),h=Y(acc)-Y(acc+v);
+   if(j===keys.length-1)roundTop(svg,x,y0,w,Math.max(0,h-1.5),4,c);else el('rect',{x,y:y0,width:w,height:Math.max(0,h-1.5),fill:c},svg);acc+=v});
+  const pace=Math.round(tot*PACE);
+  if(y===2026)el('rect',{x,y:Y(pace),width:w,height:Y(tot)-Y(pace),fill:'none',stroke:'var(--muted)','stroke-dasharray':'3 3'},svg);
+  txt(svg,x+w/2,Y(y===2026?pace:tot)-6,fmt(tot),'bv','middle');txt(svg,x+w/2,H-10,yl(y),'tk','middle');
+  const hit=el('rect',{x:L+i*bw,y:T,width:bw,height:H-T-B,fill:'transparent'},svg);
+  bindTip(hit,`<b>${yl(y)}</b>`+keys.map(([k,c])=>`<div><i class="dot" style="background:${c}"></i>${k}: ${fmt(D.stack[k][i])}</div>`).join('')+`<div class="tt">Total: ${fmt(tot)}${y===2026?' (to Sep 27; pace ≈'+fmt(pace)+')':''}</div>`)});
+})();
+
+// gap index lines
+const base=k=>(D.segs[k][1]+D.segs[k][2]+D.segs[k][3])/3;
+(function(){const svg=document.getElementById('c-gap');const W=520,H=300,L=40,R=16,T=14,B=30;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ legend('leg-gap',SEGN.map((k,i)=>[SEGC[i],SEGS[i]]));
+ const ys=D.years,max=500,X=i=>L+i*(W-L-R)/(ys.length-1),Y=v=>T+(1-Math.min(v,max)/max)*(H-T-B);
+ axisY(svg,L,W-R,Y,max,100);el('line',{x1:L,x2:W-R,y1:Y(100),y2:Y(100),stroke:'var(--ink)','stroke-width':1,'stroke-dasharray':'2 3'},svg);
+ ys.forEach((y,i)=>{if(i%2===0||y===2026)txt(svg,X(i),H-10,yl(y),'tk','middle')});
+ SEGN.forEach((k,j)=>{const b=base(k);const v=D.segs[k].map((a,i)=>Math.round(100*(ys[i]===2026?a*PACE:a)/b));
+  el('path',{d:v.map((a,i)=>(i?'L':'M')+X(i)+','+Y(a)).join(''),fill:'none',stroke:SEGC[j],'stroke-width':2.5,'stroke-linejoin':'round'},svg);
+  v.forEach((a,i)=>{const c=el('circle',{cx:X(i),cy:Y(a),r:3.5,fill:SEGC[j],stroke:'var(--panel)','stroke-width':2},svg);bindTip(c,`<b>${SEGS[j]}</b><div>${yl(ys[i])}: ${D.segs[k][i]} crashes${ys[i]===2026?' (pace ≈'+Math.round(D.segs[k][i]*PACE)+')':''}</div><div>Index ${a} (2017–19 = 100)</div>`)})});
+})();
+
+// gap paired bars
+(function(){const svg=document.getElementById('c-gapbar');const W=520,H=300,L=10,R=40,T=10;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const rowH=(H-T)/SEGN.length,max=480,X=v=>L+(v/max)*(W-L-R);
+ SEGN.forEach((k,j)=>{const y=T+j*rowH;const b=base(k),v25=D.segs[k][9];
+  txt(svg,L,y+14,SEGS[j]+(D.segdead[k]!=null?` · ${D.segdead[k]} killed`:''),'bl');
+  const w=X(b)-L,w2=X(v25)-L;
+  roundRight(svg,L,y+22,w,14,3,'var(--road)');txt(svg,L+w+6,y+34,Math.round(b)+' (2017–19)','tk');
+  roundRight(svg,L,y+40,w2,14,3,SEGC[j]);txt(svg,L+w2+6,y+52,v25+' (2025)','bv');
+  const hit=el('rect',{x:0,y,width:W,height:rowH,fill:'transparent'},svg);bindTip(hit,`<b>${SEGS[j]}</b><div>2017–19 average: ${Math.round(b)} a year</div><div>2025: ${v25}</div><div>${(v25/b).toFixed(1)}× higher</div>`)});
+})();
+
+// crash rate lines
+(function(){const svg=document.getElementById('c-rate');const W=520,H=300,L=40,R=16,T=14,B=30;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const hs=[['I-35W','var(--sah)'],['SH 114','var(--sbu)'],['US 287','var(--s287)']];legend('leg-rate',hs.map(([k,c])=>[c,k]));
+ const ys=D.rateYears,max=175,X=i=>L+i*(W-L-R)/(ys.length-1),Y=v=>T+(1-v/max)*(H-T-B);
+ axisY(svg,L,W-R,Y,max,25);ys.forEach((y,i)=>{if(i%2===0||i===ys.length-1)txt(svg,X(i),H-10,y,'tk','middle')});
+ hs.forEach(([k,c])=>{const R_=D.rates[k];el('path',{d:R_.rate.map((a,i)=>(i?'L':'M')+X(i)+','+Y(a)).join(''),fill:'none',stroke:c,'stroke-width':2.5,'stroke-linejoin':'round'},svg);
+  R_.rate.forEach((a,i)=>{const p=el('circle',{cx:X(i),cy:Y(a),r:3.5,fill:c,stroke:'var(--panel)','stroke-width':2},svg);bindTip(p,`<b>${k}, ${ys[i]}</b><div>${a} crashes per 100M vehicle-miles</div><div>${R_.n[i]} crashes · ≈${fmt(R_.aadt[i])} vehicles/day</div>`)})});
+})();
+
+// severity
+(function(){const svg=document.getElementById('c-sev');const W=520,H=300,L=40,R=10,T=14,B=30;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const rows=[['I-35W','var(--sah)',27,4266],['SH 114','var(--sbu)',14,1322],['US 287','var(--s287)',28,1130]];
+ const max=3,Y=v=>T+(1-v/max)*(H-T-B),bw=(W-L-R)/rows.length;axisY(svg,L,W-R,Y,max,.5,v=>v.toFixed(1));
+ rows.forEach(([k,c,dd,n],i)=>{const v=100*dd/n,x=L+i*bw+bw*.25,w=bw*.5;roundTop(svg,x,Y(v),w,Y(0)-Y(v),4,c);txt(svg,x+w/2,Y(v)-6,v.toFixed(1),'bv','middle');txt(svg,x+w/2,H-10,k,'tk','middle');
+  const hit=el('rect',{x:L+i*bw,y:T,width:bw,height:H-T-B,fill:'transparent'},svg);bindTip(hit,`<b>${k}</b><div>${dd} killed in ${fmt(n)} crashes</div><div>${v.toFixed(1)} deaths per 100 crashes</div>`)});
+})();
+
+// capacity
+(function(){const svg=document.getElementById('c-vc');const W=900,H=250,L=250,R=60,T=10;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const rows=D.vc,rowH=(H-T-20)/rows.length,max=1.3,X=v=>L+(v/max)*(W-L-R);
+ const names=['I-35W, Eagle Pkwy to SH 114','US 287 at N Tarrant / Harmon','US 287, Haslet to SH 114','SH 114 west of FM 156'];
+ [0,.25,.5,.75,1,1.25].forEach(v=>{el('line',{x1:X(v),x2:X(v),y1:T,y2:H-20,class:'grid'},svg);txt(svg,X(v),H-4,Math.round(v*100)+'%','tk','middle')});
+ el('line',{x1:X(1),x2:X(1),y1:T,y2:H-20,stroke:'var(--ink)','stroke-width':1.5,'stroke-dasharray':'4 3'},svg);
+ rows.forEach((r,j)=>{const y=T+j*rowH;txt(svg,L-10,y+rowH/2+4,names[j],'bl','end');
+  roundRight(svg,L,y+8,X(r.vc2025)-L,16,3,'var(--s287)');txt(svg,X(r.vc2025)+6,y+21,Math.round(r.vc2025*100)+'%','bv');
+  if(r.vc2030){roundRight(svg,L,y+28,X(r.vc2030)-L,16,3,'var(--proj)');txt(svg,X(r.vc2030)+6,y+41,Math.round(r.vc2030*100)+'%','tk')}
+  const hit=el('rect',{x:0,y,width:W,height:rowH,fill:'transparent'},svg);bindTip(hit,`<b>${names[j]}</b><div>${fmt(r.aadt2025)} vehicles/day (2025)</div><div>≈${fmt(r.peak_dir)} vehicles/hour in the busy direction</div><div>${Math.round(r.vc2025*100)}% of capacity${r.vc2030?' → '+Math.round(r.vc2030*100)+'% by 2030 ('+fmt(r.aadt2030)+'/day)':''}</div>`)});
+})();
+
+// hours
+(function(){const svg=document.getElementById('c-hour');const W=900,H=240,L=44,R=10,T=14,B=30;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const max=900,bw=(W-L-R)/24,Y=v=>T+(1-v/max)*(H-T-B);axisY(svg,L,W-R,Y,max,300);
+ const rush=h=>(h>=6&&h<=8)||(h>=15&&h<=18);
+ D.hours.forEach((v,h)=>{const x=L+h*bw+bw*.15,w=bw*.7;roundTop(svg,x,Y(v),w,Y(0)-Y(v),3,rush(h)?'var(--s287)':'var(--road)');
+  if(h%3===0)txt(svg,x+w/2,H-10,(h%12||12)+(h<12?'a':'p'),'tk','middle');
+  const hit=el('rect',{x:L+h*bw,y:T,width:bw,height:H-T-B,fill:'transparent'},svg);bindTip(hit,`<b>${(h%12||12)}${h<12?' am':' pm'}–${((h+1)%12||12)}${h+1<12||h+1===24?' am':' pm'}</b><div>${fmt(v)} crashes</div>`)});
+})();
+
+// people
+(function(){const svg=document.getElementById('c-people');const W=900,H=280,L=44,R=10,T=18,B=46;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const n=D.years.length,bw=(W-L-R)/n,max=600,Y=v=>T+(1-v/max)*(H-T-B);axisY(svg,L,W-R,Y,max,200);
+ D.years.forEach((y,i)=>{const v=D.inj[i],x=L+i*bw+bw*.2,w=bw*.6;roundTop(svg,x,Y(v),w,Y(0)-Y(v),4,'var(--s287)');txt(svg,x+w/2,Y(v)-6,v,'bv','middle');
+  txt(svg,x+w/2,H-B+16,yl(y),'tk','middle');txt(svg,x+w/2,H-B+34,D.dead[i]+' killed','tk','middle');
+  const hit=el('rect',{x:L+i*bw,y:T,width:bw,height:H-T,fill:'transparent'},svg);bindTip(hit,`<b>${yl(y)}</b><div>${v} people injured</div><div>${D.dead[i]} killed</div><div>${D.ka[i]} fatal or serious-injury crashes</div>`)});
+})();
+
+// tables
+(function(){const T=document.getElementById('tables');const keys=Object.keys(D.stack);
+ let h='<div class="ttable"><table><thead><tr><th>Year</th>'+keys.map(k=>`<th>${k}</th>`).join('')+'<th>Total</th><th>Injured</th><th>Killed</th><th>Fatal or serious crashes</th></tr></thead><tbody>';
+ D.years.forEach((y,i)=>{h+=`<tr><td>${yl(y)}</td>`+keys.map(k=>`<td>${fmt(D.stack[k][i])}</td>`).join('')+`<td>${fmt(D.total[i])}</td><td>${D.inj[i]}</td><td>${D.dead[i]}</td><td>${D.ka[i]}</td></tr>`});
+ h+='</tbody></table></div><div class="ttable"><table><thead><tr><th>Year</th>'+SEGS.map(s=>`<th>${s}</th>`).join('')+'</tr></thead><tbody>';
+ D.years.forEach((y,i)=>{h+=`<tr><td>${yl(y)}</td>`+SEGN.map(k=>`<td>${D.segs[k][i]}</td>`).join('')+'</tr>'});
+ h+='</tbody></table></div><div class="ttable"><table><thead><tr><th>Year</th><th>I-35W vehicles/day</th><th>I-35W rate</th><th>SH 114 vehicles/day</th><th>SH 114 rate</th><th>US 287 vehicles/day</th><th>US 287 rate</th></tr></thead><tbody>';
+ D.rateYears.forEach((y,i)=>{h+=`<tr><td>${y}</td>`+['I-35W','SH 114','US 287'].map(k=>`<td>${fmt(D.rates[k].aadt[i])}</td><td>${D.rates[k].rate[i]}</td>`).join('')+'</tr>'});
+ T.innerHTML=h+'</tbody></table></div><p class="tnote">Rate = crashes per 100 million vehicle-miles. * 2026 through September 27.</p>';})();
+})();
+</script>
+
+</body>
+</html>

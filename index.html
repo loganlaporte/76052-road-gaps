@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>76052 Road Gaps</title>
+<meta name="description" content="Where roads in ZIP 76052 (Haslet and far north Fort Worth) haven't kept up with growth, mapped from public TxDOT, FRA, Census and city data.">
+<!-- Link preview for Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Our roads haven't kept up with 76052">
+<meta property="og:description" content="A one-lane-each-way bridge, blocked rail crossings, and a 2-lane FM 156, mapped from public data.">
+<meta property="og:image" content="https://loganlaporte.github.io/76052-road-gaps/preview.png">
+<meta property="og:url" content="https://loganlaporte.github.io/76052-road-gaps/">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif;background:#f3f4f2}img{max-width:100%}[hidden]{display:none!important}</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: map + finding list side by side on desktop, stacked on phone; method notes below */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --ink:#1e2327; --muted:#5d666d; --line:#d6dad8;
+  --road:#8f989e; --road-major:#4a5359; --zip:#1e2327; --zipfill:#e8ebe7;
+  --stripe:#d9a300; --high:#c8372d; --med:#d17a00; --low:#4f7f3a; --gone:#8a8f93; --fix:#2f6fb0;
+  --front:#0f8a83; --hood:#7a5cc4; --rail:#6b4a2f; --new:#b8860b;
+  --display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15191c; --panel:#1d2226; --ink:#e7eae8; --muted:#9aa3a9; --line:#343b40;
+  --road:#566067; --road-major:#98a2a8; --zip:#e7eae8; --zipfill:#20262a;
+  --stripe:#f0bd2a; --high:#ef6a5f; --med:#f0a040; --low:#86b86d; --gone:#80878c; --fix:#6aa6e6;
+  --front:#3fc2b9; --hood:#a88cf0; --rail:#c9a27e; --new:#e6b84a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15191c; --panel:#1d2226; --ink:#e7eae8; --muted:#9aa3a9; --line:#343b40;
+  --road:#566067; --road-major:#98a2a8; --zip:#e7eae8; --zipfill:#20262a;
+  --stripe:#f0bd2a; --high:#ef6a5f; --med:#f0a040; --low:#86b86d; --gone:#80878c; --fix:#6aa6e6;
+  --front:#3fc2b9; --hood:#a88cf0; --rail:#c9a27e; --new:#e6b84a; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body)}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 48px;display:grid;gap:28px}
+header{display:grid;gap:8px;border-bottom:4px solid var(--stripe);padding-bottom:18px}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(30px,5vw,46px)/1.05 var(--display);margin:0;text-wrap:balance;letter-spacing:.01em}
+.lede{max-width:68ch;margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.mapbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;display:grid;gap:10px;min-width:0}
+svg{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font:12px var(--mono);color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+.list{display:grid;gap:12px;min-width:0}
+.f{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:6px;padding:14px 16px;display:grid;gap:6px;cursor:pointer}
+.f:focus-visible,.f.on{outline:2px solid var(--c);outline-offset:2px}
+.fh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.id{font:700 15px var(--mono);color:var(--c)}
+.fh h3{font:600 20px/1.2 var(--display);margin:0;letter-spacing:.01em}
+.pill{margin-left:auto;font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:99px;border:1px solid var(--c);color:var(--c);white-space:nowrap}
+.stats{display:flex;flex-wrap:wrap;gap:4px 18px;font:13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.stats b{color:var(--ink);font-weight:500}
+.f p{margin:0;font-size:14px}
+.src{font:12px var(--mono);color:var(--muted)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px 32px}
+.notes h2{font:600 22px var(--display);margin:0 0 6px}
+.notes p,.notes li{font-size:14px;max-width:62ch}
+.notes ul{padding-left:18px;margin:0;display:grid;gap:4px}
+a{color:var(--fix)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:600 12px var(--mono);letter-spacing:.04em;text-transform:uppercase;padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tabs button:focus-visible{outline:2px solid var(--stripe);outline-offset:2px}
+.grp{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.zone{display:grid;gap:14px;border-top:4px solid var(--hood);padding-top:18px}
+.zone h2{font:700 clamp(24px,3.6vw,34px)/1.1 var(--display);margin:0;text-wrap:balance}
+.zone .lede{max-width:72ch}
+.facts{display:flex;flex-wrap:wrap;gap:8px 28px;font:13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.facts b{display:block;font:600 22px var(--display);color:var(--ink)}
+.byline{font:13px var(--mono);color:var(--muted);margin:0}
+.top{display:grid;gap:10px}
+.top h2,.act h2{font:700 clamp(22px,3vw,28px)/1.1 var(--display);margin:0}
+.top5{margin:0;padding-left:1.4em;display:grid;gap:8px;max-width:78ch}
+.top5 li{font-size:16px}
+.top5 li::marker{font:700 18px var(--display);color:var(--high)}
+.top5 a{font:600 12px var(--mono);margin-left:4px}
+.act{display:grid;gap:12px;border-top:4px solid var(--fix);padding-top:18px}
+.actgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:grid;gap:6px;align-content:start;min-width:0}
+.card h3{font:600 20px var(--display);margin:0}
+.card p{margin:0;font-size:14px}
+.contact{font:13px var(--mono);color:var(--muted)}
+.sel{user-select:all;color:var(--ink)}
+.foot{font:12px var(--mono);color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">ZIP 76052 · Haslet &amp; far north Fort Worth · Updated September 30, 2026</div>
+  <h1>Our roads haven't kept up with 76052</h1>
+  <p class="lede">The ZIP grew from 15,995 people in 2010 to 26,675 in 2020, and satellite images show building hasn't slowed since. This page maps where the road network hasn't caught up: 4-lane roads that squeeze to 2, a one-lane-each-way bridge on the main road out of Sendera, rail crossings that trains block, and new neighborhoods served by rural roads. Everything here comes from public data, and each spot was checked on aerial imagery. Traffic counts are TxDOT's annual averages (AADT, vehicles per day).</p>
+  <p class="byline">Independent analysis by a 76052 resident using public data. Not affiliated with TxDOT, the City of Fort Worth, the Town of Haslet, Tarrant or Denton County, or BNSF.</p>
+</header>
+
+<section class="top" aria-labelledby="top-h">
+  <h2 id="top-h">The five biggest gaps</h2>
+  <ol class="top5">
+    <li><b>The Avondale-Haslet bridge over US 287 is one lane each way</b>, squeezed between a 4–5 lane road and the Saginaw signal. It's the main way out for more than 10,500 homes. <a href="#area-j">J9</a></li>
+    <li><b>FM 156 through Haslet is still 2 lanes</b> but carries up to about 16,800 vehicles a day. TxDOT is studying a widening with no construction date. <a href="#map">B</a></li>
+    <li><b>Avondale-Haslet crosses the BNSF tracks in Haslet at grade</b>, and people have filed 197 reports of trains blocking it. <a href="#area-j">J3</a></li>
+    <li><b>New Northstar Pkwy crosses the tracks at grade</b> just 48 m from the next intersection, while new subdivisions go up on both sides. <a href="#area-j">J1</a></li>
+    <li><b>A neighborhood of about 750 homes connects straight onto US 287</b>, where there's no frontage road, into about 59,000 vehicles a day. <a href="#map">G</a></li>
+  </ol>
+</section>
+
+<div class="grid">
+  <div class="mapbox">
+    <svg id="map" viewBox="0 0 160 150" role="img" aria-label="Map of ZIP 76052 with major roads and flagged lane drops"></svg>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--high)"></i>High concern</span>
+      <span><i class="dot" style="background:var(--med)"></i>Medium</span>
+      <span><i class="dot" style="background:var(--low)"></i>Low</span>
+      <span><i class="dot" style="background:var(--fix)"></i>Fix under construction</span>
+      <span><i class="dot" style="background:var(--gone)"></i>Data error</span>
+      <span><i style="width:18px;height:3px;background:var(--high);display:inline-block"></i>2-lane corridor, high traffic</span>
+      <span><i style="width:18px;height:3px;background:var(--front);display:inline-block"></i>US 287 frontage road</span>
+      <span><i style="width:14px;height:10px;background:var(--hood);opacity:.35;display:inline-block;border:1px solid var(--hood)"></i>Neighborhood area</span>
+    </div>
+  </div>
+  <div class="list">
+    <div class="tabs" role="group" aria-label="Filter findings">
+      <button type="button" id="tab-all" data-g="all" aria-pressed="true">All</button>
+      <button type="button" id="tab-through" data-g="through" aria-pressed="false">Through roads</button>
+      <button type="button" id="tab-frontage" data-g="frontage" aria-pressed="false">Frontage roads</button>
+      <button type="button" id="tab-hood" data-g="hood" aria-pressed="false">Neighborhoods</button>
+    </div>
+    <div class="list" id="list"></div>
+  </div>
+</div>
+
+<section class="zone" id="area-j">
+  <div class="eyebrow">Close-up · Area J · Sendera Ranch and Avondale-Haslet</div>
+  <h2>Area J: choke points and odd intersections</h2>
+  <p class="lede">Area J sits between two BNSF rail lines. Every road west to US 287 except one crosses the tracks at grade, and so does the main road east to Haslet. The one road that passes under the tracks is Barnwood Dr, off John Day Rd, and the direct road to it hasn't been built. Each intersection was checked on the newest high-resolution imagery (January 3, 2026, 0.34 m) and compared Sentinel-2 satellite passes from September 10, 2025 and September 15, 2026 to see what's been built since.</p>
+  <div class="facts">
+    <span><b>10,500+</b>homes on the tax rolls, plus ≈1,100 new lots</span>
+    <span><b>0</b>local road bridges over the tracks west of Sendera</span>
+    <span><b>0</b>signals on the 2 mi of Avondale-Haslet between US 287 and Sendera Ranch Blvd</span>
+    <span><b>+67%</b>ZIP population, 2010 to 2020 census</span>
+  </div>
+  <div class="grid">
+    <div class="mapbox">
+      <svg id="jmap" viewBox="0 0 755 700" role="img" aria-label="Close-up map of area J with rail lines, collectors and flagged intersections"></svg>
+      <div class="legend">
+        <span><i style="width:18px;height:3px;background:var(--rail);display:inline-block"></i>BNSF rail line</span>
+        <span><i style="width:18px;height:3px;background:var(--road-major);display:inline-block"></i>Arterial or US 287</span>
+        <span><i style="width:18px;height:2px;background:var(--road);display:inline-block"></i>Collector</span>
+        <span><i class="dot" style="background:var(--new)"></i>Built since Jan 2026</span>
+      </div>
+    </div>
+    <div class="list" id="jlist"></div>
+  </div>
+</section>
+
+<section class="act" id="act" aria-labelledby="act-h">
+  <h2 id="act-h">What you can do</h2>
+  <div class="actgrid">
+    <div class="card"><h3>Tell TxDOT</h3><p>US 287, its frontage roads, the Avondale-Haslet bridge and FM 156 are state roads. Ask that the Avondale-Haslet bridge and the FM 156 widening be funded, and name the spots on this page.</p>
+      <p class="contact">TxDOT Fort Worth District · <span class="sel">817-370-6500</span><br><a href="https://www.txdot.gov/about/contact-us/ask-a-general-question.html?id=ftw-email" target="_blank" rel="noopener">Email the district</a> · <a href="https://www.txdot.gov/projects/projects-studies/fort-worth/us81us-287-corridor.html" target="_blank" rel="noopener">US 287 projects</a> · <a href="https://www.keepitmovingdallas.com/projects/fm-roads/fm156" target="_blank" rel="noopener">FM 156 project</a></p></div>
+    <div class="card"><h3>Report blocked crossings</h3><p>Each time a train blocks Avondale-Haslet, Northstar Pkwy or Blue Mound Rd, file a report with the Federal Railroad Administration. These reports are the numbers on this page, and more reports build the case.</p>
+      <p class="contact"><a href="https://www.fra.dot.gov/blockedcrossings/" target="_blank" rel="noopener">FRA Blocked Crossing Incident Reporter</a></p></div>
+    <div class="card"><h3>Speak at a council meeting</h3><p>Signals, Avondale-Haslet and the Northstar crossing are city and county decisions. Public comment is usually open for about three minutes per person.</p>
+      <p class="contact"><a href="https://www.fortworthtexas.gov/residents/my-neighborhood/my-council-districts" target="_blank" rel="noopener">Find your Fort Worth council district</a> · Haslet residents: Town of Haslet council</p></div>
+    <div class="card"><h3>Comment on the regional plan</h3><p>The North Central Texas Council of Governments decides which projects get federal and state money. Its long-range plan and project list take public comments at regular meetings.</p>
+      <p class="contact"><a href="https://nctcog.org/trans/plan/mtp/mobility-2050/public-input-summary" target="_blank" rel="noopener">NCTCOG Mobility 2050 public input</a></p></div>
+  </div>
+</section>
+
+<section class="notes">
+  <div>
+    <h2>How to read this</h2>
+    <p>A 2-lane arterial usually starts to break down somewhere around 13,000 to 17,000 vehicles a day, depending on signals, driveways and turn lanes. That's a rule-of-thumb planning range, not a TxDOT standard. So a lane drop matters most when the 2-lane side still carries that much traffic.</p>
+    <p>Neighborhood areas were built by grouping connected streets, counting the building footprints in each, and counting every place a street in that area meets an outside road. A detached home generates about 9.4 vehicle trips on a weekday (ITE's standard planning rate). Most fire codes, including IFC Appendix D, call for a second access road once a development passes 30 homes, unless the homes have sprinklers.</p>
+  </div>
+  <div>
+    <h2>Limits of the data</h2>
+    <ul>
+      <li>TxDOT often lists city and county streets as 2 lanes by default, and some local counts are from 2019. New roads such as Haslet Parkway aren't in the 2023 inventory yet.</li>
+      <li>Not every OSM road has a lane tag. Short 4-lane flares at intersections were filtered out (both sides of a drop had to be at least 250 m long).</li>
+      <li>The aerial imagery predates current construction, so it shows conditions before the Avondale-Haslet work.</li>
+      <li>Only about 8% of neighborhood streets in OSM have a lane count, so a lane drop inside a subdivision could be missed. None turned up in the streets that are tagged.</li>
+      <li>Rail data comes from TxDOT's grade-crossing layer, which carries FRA trains-per-day, crash and blocked-crossing report counts. Some of its traffic counts are older than the homes around them.</li>
+      <li>Sentinel-2 has 10 m pixels. It shows new grading, pavement and roofs clearly, but not lane striping or signal heads.</li>
+      <li>"Homes" are building footprints within 70 m of a neighborhood street, with garages, sheds and commercial buildings removed when they're labeled. On acreage lots, unlabeled barns and shops inflate the count. In fast-growing tract neighborhoods the footprints run far behind: for area J, city address and appraisal records show about 1.6 times as many homes, so area J uses those records instead.</li>
+    </ul>
+  </div>
+  <div>
+    <h2>Sources</h2>
+    <ul>
+      <li><a href="https://services.arcgis.com/KTcxiTD9dsQw4r7Z/ArcGIS/rest/services/Roadway_Inventory_2023/FeatureServer/0" target="_blank" rel="noopener">TxDOT Roadway Inventory 2023</a> (lanes, AADT, right-of-way)</li>
+      <li>OpenStreetMap streets, lane tags and building footprints, via the Overpass API</li>
+      <li>Census TIGERweb ZCTA boundary · Esri World Imagery (Vivid Advanced, Jan 3, 2026) · Sentinel-2 via Esri Sentinel-2 Views (Sep 2025, Sep 2026)</li>
+      <li><a href="https://services.arcgis.com/KTcxiTD9dsQw4r7Z/ArcGIS/rest/services/TexasRailroadGradeCrossings/FeatureServer/0" target="_blank" rel="noopener">TxDOT Texas Railroad Grade Crossings</a> (FRA trains, crashes, blocked-crossing reports)</li>
+      <li><a href="https://www.txdot.gov/projects/projects-studies/fort-worth/us81us-287-corridor.html" target="_blank" rel="noopener">TxDOT: US 81/US 287 corridor projects</a></li>
+      <li><a href="https://www.zip-codes.com/zip-code/76052/zip-code-76052.asp" target="_blank" rel="noopener">ZIP 76052 census population</a> (15,995 in 2010; 26,675 in 2020)</li>
+      <li><a href="https://mapit.fortworthtexas.gov/ags/rest/services/Fire/Fire_Addressing/MapServer" target="_blank" rel="noopener">City of Fort Worth address points with appraisal data</a> (area J home count)</li>
+      <li><a href="https://fortworthtexas.gov/projects/cfw-avondale-haslet-road-improvements" target="_blank" rel="noopener">Fort Worth: Avondale Haslet Road Improvements</a></li>
+      <li><a href="https://www.keepitmovingdallas.com/projects/fm-roads/fm156" target="_blank" rel="noopener">TxDOT: FM 156, SH 114 to north of Intermodal Pkwy</a></li>
+      <li><a href="https://www.tarrantcounty.com/en/transportation/bond-program/transp-imprvements/widening/haslet---alliancetexas-haslet-haslet-accessibility-improvement-p.html" target="_blank" rel="noopener">Tarrant County: AllianceTexas/Haslet Accessibility Improvement Project</a></li>
+    </ul>
+  </div>
+</section>
+<div class="foot">Map data © OpenStreetMap contributors (ODbL). Roadway and rail-crossing data: TxDOT, including FRA figures. Imagery used for review: Esri World Imagery and Copernicus Sentinel-2 data (2025–2026). Coordinates are approximate, to about 50 m. Tap a finding to highlight it on the map. Found an error? Corrections are welcome.</div>
+</div>
+
+<script>
+const RAW=`R:13.4b 18.48 1c.42 1b.42 1m.3n 1x.2u 27.29 27.1v 2j.1v 2a.1m 29.1h 2a.1e 2j.1e 2j.1l 2j.1e 2l.1e 2l.14 2m.14 2n.y 3h.y 3h.z 3j.z 3j.y 4o.y 4o.1m 53.1m 53.20 4z.20 50.2b 4v.2c 4v.27 4t.27 4s.25 4j.26 4j.2c 48.2c 4s.2t 53.3c 51.3c 51.3i 4x.3i 4x.3k 4t.3l 4o.3j 4g.3b 4f.3a 48.3a 4a.37 45.37 45.39 43.3e 43.3n 46.3u 41.3x 3x.3w 3r.3y 3p.41 3k.3y 3g.3y 3d.3w 3a.3x 38.3w 35.3w 33.3x 31.3w 2y.3y 2x.3w 2v.3y 2v.43 1p.43 1l.44 1a.4b 17.4c 13.4b
+BU0081E=r.4l t.4f s.4c
+BU0287P=2i.w 2l.p|24.2f 28.29 27.22 27.1f 2j.s|25.2c 27.29 27.23
+FM0156=5j.4l 5i.4f 57.3m 52.3k 4u.3l 4p.3k 4h.3d 4e.39 4e.2k 4b.2f 44.29 42.23 43.21 46.1y 47.1s 47.p|5j.4l 59.3p
+FM0718=l.31 u.2w 1u.2g 25.26 28.26
+FM1220=k.19 v.t w.q
+FM3433=s.4c r.48 k.3y
+IH0035W=53.t 53.13 59.1n 59.24 5c.2g 5e.2k 5k.2s
+SH0114=z.4b 15.4c 19.4c 1m.44 1p.43 4u.41 5j.3t
+SH0170=59.1y 5f.1y 5j.21
+US0081=l.4l m.4h o.4e 11.4a 17.47 1k.3q 1x.2t 26.2a 29.27 36.1k 3w.10 48.p
+OLD BLUE MOUND RD=52.3b 56.3i 55.3k
+JOHN DAY RD=3h.42 3h.3v 3f.3u 3f.3i|3f.3i 3t.3i 40.3g|3y.3g 40.3e 3x.37 3x.2v 40.2u
+DOUBLE EAGLE BLVD=5k.3t 5j.3m 5i.3l 5c.3k 57.3m
+AVONDALE HASLET RD=28.26 2e.26 2f.27 3o.27 3q.28 44.28
+BLUE MOUND W RD=3h.1k 47.1k|2j.1k 2i.1o 27.1o
+WAGLEY ROBERTSON=3h.q 3h.y
+MORRIS DIDO NEWARK RD=l.19 k.1a|k.2b m.2f l.2g k.2r w.2r z.2u
+PEDEN RD=2a.19 l.19
+KELLER HICKS=5a.1g 5a.1e 5k.1d
+BLUE MOUND=2x.1k 2j.1k|3h.1k 2x.1k
+KELLER HASLET N RD=41.2o 43.2n 46.2n
+WESTPORT PKWY=46.2e 48.2c 4c.2c 4x.2c 52.2a 5i.2a
+INTERMODAL PKWY=4s.2c 4t.2k 4r.2p 4n.2s 4e.2s
+BLUE MOUND RD=47.1k 4h.1n 4o.1l 51.1l
+N RIVERSIDE DR=5d.16 5d.q
+GOLDEN TRIANGLE BLVD=4x.17 5k.16|4p.y 4r.y 4v.11 4x.13 4x.15
+HERITAGE PKWY=57.2a 5a.2i 5d.2n 5f.2t 5j.2y
+E BONDS RANCH RD=3y.y 4p.y
+HARMON RD=4o.15 4p.s|51.1g 51.1l 53.1m 53.1n 53.20 4z.20 50.2b|4x.15 4x.17
+EAGLE PKWY=52.3b 53.38 5e.39 5k.36
+W BONDS RANCH RD=3y.y 25.z 19.y 17.x 10.r w.q
+TIMBERLAND BLVD=57.1g 5g.1g 5k.1l
+GOLDEN HEIGHTS RD=4o.15 4x.15
+KELLER HASLET RD=46.2e 46.2n`;
+// TxDOT US 287 frontage roadbeds (AG = east/north side, XG = west/south side)
+const FRONT=`l.4l l.4h o.4e v.4b 11.4a 15.48 18.45 1g.3v 1l.3n 1o.3g 1o.3d 1q.3c 1x.2t 24.2e 27.26 28.26 2k.1y
+2y.1p 3a.1h
+3y.y 47.p
+m.4k m.4h p.4e x.4c 12.4c 16.48 1j.3s
+1x.2w 25.2e 28.2b 29.28 2d.24 2l.1z
+2m.1y 36.1l 3c.1h
+3z.y 48.q`;
+// Neighborhood areas (outline of building footprints): id, outline
+const HOODS=[
+ ['J','2f.2s 2f.2q 2p.26 2t.1x 31.1s 38.1w 39.1x 3c.20 3u.2p 3v.2t 3r.32 37.38 35.38 2h.2v 2f.2u'],
+ ['G','3i.1f 3i.1d 3i.1c 3l.1a 3t.14 3u.13 3u.14 3v.1j 3v.1k 3t.1k 3m.1k 3j.1k 3i.1j']
+];
+
+const K=Math.cos(33*Math.PI/180);
+const X0=12, Y1=172; // x units start, y top (base36 decoded)
+const pt=s=>{const [a,b]=s.split('.');return [(parseInt(a,36)-X0)*K, Y1-parseInt(b,36)]};
+const ll=(lat,lon)=>[((lon+97.5)*1000-X0)*K, Y1-(lat-32.89)*1000];
+const MAJOR=/^(US|IH|SH|FM|BU)/;
+const NS='http://www.w3.org/2000/svg';
+const svg=document.getElementById('map');
+const el=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e};
+let ring=null; const roads=[];
+RAW.split('\n').forEach(line=>{
+  if(line.startsWith('R:')){ring=line.slice(2).split(' ').map(pt);return}
+  const i=line.indexOf('='); const name=line.slice(0,i);
+  line.slice(i+1).split('|').forEach(p=>{const c=p.trim().split(' ').filter(Boolean).map(pt); if(c.length>1)roads.push({name,c})});
+});
+svg.appendChild(el('polygon',{points:ring.map(p=>p.join(',')).join(' '),fill:'var(--zipfill)',stroke:'var(--zip)','stroke-width':'.6','stroke-dasharray':'2 1.2'}));
+const hoodEls={};
+HOODS.forEach(([id,s])=>{const p=el('polygon',{points:s.split(' ').map(pt).map(q=>q.join(',')).join(' '),fill:'var(--hood)','fill-opacity':'.18',stroke:'var(--hood)','stroke-width':'.5','stroke-linejoin':'round'});p.dataset.g='hood';svg.appendChild(p);hoodEls[id]=p});
+roads.sort((a,b)=>MAJOR.test(a.name)-MAJOR.test(b.name)).forEach(r=>{
+  const major=MAJOR.test(r.name);
+  svg.appendChild(el('polyline',{points:r.c.map(p=>p.join(',')).join(' '),fill:'none',stroke:major?'var(--road-major)':'var(--road)','stroke-width':major?'1.2':'.6','stroke-linecap':'round','stroke-linejoin':'round'}));
+});
+// FM 156 corridor highlight (2-lane, high AADT)
+roads.filter(r=>r.name==='FM0156').forEach(r=>svg.appendChild(el('polyline',{points:r.c.map(p=>p.join(',')).join(' '),fill:'none',stroke:'var(--high)','stroke-width':'2.4','stroke-opacity':'.55','stroke-linecap':'round'})));
+const frontEls=[];
+FRONT.split('\n').forEach(s=>{const c=s.trim().split(' ').map(pt);const e=el('polyline',{points:c.map(p=>p.join(',')).join(' '),fill:'none',stroke:'var(--front)','stroke-width':'1.6','stroke-linecap':'round','stroke-linejoin':'round'});e.dataset.g='frontage';svg.appendChild(e);frontEls.push(e)});
+const lab=(t,lat,lon,dx=0,dy=0)=>{const [x,y]=ll(lat,lon);const e=el('text',{x:x+dx,y:y+dy,'font-size':'3.4','font-family':'IBM Plex Mono, monospace',fill:'var(--muted)'});e.textContent=t;svg.appendChild(e)};
+lab('US 287',33.02,-97.437,2,0); lab('SH 114',33.045,-97.395,0,-2); lab('FM 156',33.0,-97.338,2,0); lab('I-35W',32.93,-97.325,-11,0); lab('BU 287',32.945,-97.42,-13,0); lab('Haslet',32.975,-97.347,2,5);
+
+const F=[
+ {id:'A',lvl:'high',t:'Business 287 (N Saginaw Blvd)',lat:32.9645,lon:-97.4207,stats:[['Lanes','4 divided → 2'],['AADT','12,924 (2023)'],['Right-of-way','130 ft']],
+  p:'Heading south, the divided 4-lane section ends and the road narrows to 2 lanes. It still carries about 13,000 vehicles a day on the 2-lane side, and TxDOT already owns 130 ft of right-of-way, enough for 4 lanes. A quick search didn\'t turn up any widening project.',s:'TxDOT inventory + OSM + imagery agree'},
+ {id:'B',lvl:'high',t:'FM 156 (Blue Mound Rd) through Haslet',lat:32.9650,lon:-97.3487,corridor:true,stats:[['Lanes','2 the whole way'],['AADT','12,905–16,788 (2023)'],['Length','~6 mi in ZIP']],
+  p:'This isn\'t a single lane drop. It\'s a 2-lane road squeezed between 4- and 6-lane roads (SH 114, Westport Pkwy, Haslet Pkwy), and its traffic sits at or above what a 2-lane road usually handles. TxDOT is studying a widening from SH 114 to north of Intermodal Pkwy (2 → 4 lanes, 6 eventually). The public meeting was in April 2026, and no construction date has been published.',s:'TxDOT inventory + imagery; TxDOT FM 156 project page'},
+ {id:'C',lvl:'fix',t:'Avondale-Haslet Rd, east end of 4-lane section',lat:32.9688,lon:-97.4030,stats:[['Lanes','4 → 2 heading east'],['AADT','12,920 (2019)'],['Fix','2 → 4 divided, $72.6M']],
+  p:'Heading toward Haslet, the widened section ends and the road drops to a rural 2-lane with a rail crossing. Fort Worth is widening it from Willow Creek Dr to the city limits. The project is under construction, with a target finish of winter 2028. The fix for this one is funded and underway.',s:'OSM + imagery; City of Fort Worth project page'},
+ {id:'D',lvl:'med',t:'Avondale-Haslet Rd / FM 718 at Saginaw',lat:32.9680,lon:-97.4205,stats:[['Lanes','4–5 → 2 heading west'],['AADT','9,676 on FM 718 (2023)']],
+  p:'West of the Saginaw intersection, the widened Avondale-Haslet section becomes 2-lane FM 718. Traffic is below the usual 2-lane breakdown range for now. Watch it as the subdivisions to the west build out.',s:'OSM lane tags; TxDOT count'},
+ {id:'E',lvl:'low',t:'Keller Haslet Rd',lat:32.9847,lon:-97.3496,stats:[['Lanes','4 divided → 2'],['AADT','5,399']],
+  p:'A short divided section at the industrial frontage narrows to 2 lanes heading northwest. At about 5,400 vehicles a day, 2 lanes is adequate.',s:'OSM lane tags; TxDOT count'},
+ {id:'F',lvl:'gone',t:'Intermodal Pkwy (false alarm)',lat:32.9896,lon:-97.3327,stats:[['TxDOT says','4 → 2'],['AADT','9,504 (2019)']],
+  p:'TxDOT\'s inventory still shows a drop here, but the imagery shows a new divided road. Tarrant County extended Intermodal Pkwy as a 4-lane divided road to meet Haslet Parkway. The inventory is out of date, so this isn\'t a real gap.',s:'Contradicted by imagery + Tarrant County project'},
+ {id:'G',g:'hood',lvl:'high',t:'Subdivision streets that open onto US 287',lat:32.9347,lon:-97.3705,extra:[[32.9318,-97.3667]],stats:[['Homes','≈757'],['Exits','4, and 2 of them onto US 287'],['US 287 AADT','59,182 (2023)']],
+  p:'The Singing Quail Trail / Lonesome Mountain Trail neighborhood has two streets that tie straight into the US 287 mainlanes as right-in, right-out turns. There\'s no frontage road here to take that traffic, so residents merge directly into about 59,000 vehicles a day at highway speed. Its only other exits are two connections to Blue Mound Rd West.',s:'OSM street network + building footprints; confirmed on imagery'},
+ {id:'H',g:'frontage',lvl:'med',t:'US 287 has no frontage road for ~2 miles',lat:32.9427,lon:-97.3810,stats:[['Gap','≈2 mi, both sides'],['US 287 AADT','59,182 (2023)']],
+  p:'South of Haslet, from the high school area at this marker down to about Bonds Ranch Rd, neither side of US 287 has a frontage road. Neighborhoods have grown up on both sides anyway. That\'s why finding G exists: without a frontage road, the only way to give those streets highway access was direct connections to the mainlanes.',s:'TxDOT frontage roadbeds (AG/XG) + OSM; imagery'},
+ {id:'I',g:'frontage',lvl:'med',t:'Two-way frontage roads on US 287',lat:32.9515,lon:-97.3935,extra:[[32.9800,-97.4240]],stats:[['Length','≈2 mi + ≈1.9 mi'],['Frontage AADT','12,430 and 3,581']],
+  p:'OSM marks about 4 miles of US 287 frontage road as two-way: one stretch north of Avondale-Haslet Rd and one to the south. TxDOT counts about 12,400 vehicles a day on the southern one. TxDOT generally prefers one-way frontage roads beside freeways, because two-way ones add wrong-way and turning conflicts at the ramps. The imagery wasn\'t clear enough to confirm the direction, so check this one in person. TxDOT\'s US 287 plans on both sides of Avondale-Haslet Rd would convert these to continuous one-way frontage roads, but the northern plan isn\'t funded yet.',s:'OSM oneway tags; TxDOT frontage counts; TxDOT project pages'},
+ {id:'J',g:'hood',lvl:'med',t:'Sendera Ranch area funnels onto Avondale-Haslet',lat:32.9867,lon:-97.3844,stats:[['Homes','≈10,500 built + ≈1,100 new lots'],['Trips/day','≈100,000 (est.)'],['Exits to the south','8, all on Avondale-Haslet']],
+  p:'Counting from the City of Fort Worth\'s address and appraisal records, this area holds 11,606 residential addresses: 10,519 with a house on the tax roll and 1,087 new lots not yet valued. That\'s about 1.6 times the building-footprint count first used here. The largest connected neighborhood area in the ZIP sends 8 of its exits onto the 2-lane stretch of Avondale-Haslet Rd between Willow Creek Dr and Haslet. Its other ways out are internal 2-lane collectors (Sendera Ranch Blvd, Northstar Pkwy) and rural John Day Rd. The widening in finding C is the fix, but it isn\'t due until 2028. The close-up below breaks this area down intersection by intersection.',s:'OSM street network + building footprints; ITE trip rate'},
+ {id:'K',g:'hood',lvl:'low',t:'Small subdivisions with one way in',lat:32.9245,lon:-97.4017,extra:[[33.0162,-97.3769],[32.9329,-97.3488],[32.9534,-97.3486],[32.9846,-97.4269]],stats:[['Areas','5'],['Buildings each','38–100']],
+  p:'Five small subdivisions each have a single street connection: Blue Sky Dr (W Bonds Ranch Rd), Songbird Ln (John Day Rd), Sky Ridge Ct and Brentwood Ln (both on FM 156), and Santa Fe Ct (US 287 frontage). All pass the 30-home threshold on building count, but the imagery shows rural acreage where barns and shops inflate that count. Most probably have fewer than 30 actual homes.',s:'OSM street network + building footprints; imagery'}
+];
+const LVL={high:['var(--high)','High'],med:['var(--med)','Medium'],low:['var(--low)','Low'],fix:['var(--fix)','Fix underway'],gone:['var(--gone)','Data error']};
+const list=document.getElementById('list'); const marks={}; const groups={};
+const ORDER=['A','B','G','C','J','H','I','D','E','K','F'];
+F.sort((a,b)=>ORDER.indexOf(a.id)-ORDER.indexOf(b.id));
+F.forEach(f=>{
+  f.g=f.g||'through';
+  const [c,label]=LVL[f.lvl];
+  const rings=[]; const gs=[];
+  [[f.lat,f.lon],...(f.extra||[])].forEach(([la,lo],i)=>{const [x,y]=ll(la,lo); const r=i?2.6:3.4;
+    const g=el('g',{style:'cursor:pointer'}); g.appendChild(el('circle',{cx:x,cy:y,r,fill:c,stroke:'var(--panel)','stroke-width':'.8'}));
+    const t=el('text',{x,y:y+(i?0.95:1.25),'text-anchor':'middle','font-size':i?'2.7':'3.5','font-weight':'700','font-family':'IBM Plex Mono, monospace',fill:'var(--panel)'}); t.textContent=f.id; g.appendChild(t);
+    const ring2=el('circle',{cx:x,cy:y,r:'6',fill:'none',stroke:c,'stroke-width':'.8',opacity:'0'}); g.appendChild(ring2);
+    g.dataset.g=f.g; svg.appendChild(g); rings.push(ring2); gs.push(g);});
+  marks[f.id]=rings;
+  const d=document.createElement('article'); d.className='f'; d.tabIndex=0; d.style.setProperty('--c',c); d.dataset.g=f.g;
+  gs.forEach(g=>g.addEventListener('click',()=>{on();d.scrollIntoView({behavior:'smooth',block:'nearest'})}));
+  d.innerHTML=`<div class="fh"><span class="id">${f.id}</span><h3>${f.t}</h3><span class="pill">${label}</span></div>
+  <div class="stats">${f.stats.map(([k,v])=>`<span>${k} <b>${v}</b></span>`).join('')}<span>${f.lat.toFixed(4)}, ${f.lon.toFixed(4)}</span></div>
+  <p>${f.p}</p><div class="src">${f.s}</div>`;
+  function on(){document.querySelectorAll('.f').forEach(e=>e.classList.remove('on'));Object.values(marks).flat().forEach(m=>m.setAttribute('opacity','0'));Object.values(hoodEls).forEach(h=>h.setAttribute('fill-opacity','.18'));
+    d.classList.add('on');rings.forEach(r=>r.setAttribute('opacity','1'));if(hoodEls[f.id])hoodEls[f.id].setAttribute('fill-opacity','.4')}
+  d.addEventListener('click',on); d.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();on()}});
+  list.appendChild(d);
+});
+// filter tabs
+const tabs=[...document.querySelectorAll('.tabs button')];
+function setGroup(g){
+  tabs.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.g===g)));
+  document.querySelectorAll('.f').forEach(e=>{e.hidden=!(g==='all'||e.dataset.g===g)});
+  svg.querySelectorAll('[data-g]').forEach(e=>{const show=g==='all'||e.dataset.g===g;e.style.opacity=show?'1':'.15'});
+  try{localStorage.setItem('ld-group',g)}catch(e){}
+}
+tabs.forEach(b=>b.addEventListener('click',()=>setGroup(b.dataset.g)));
+let saved='all';try{saved=localStorage.getItem('ld-group')||'all'}catch(e){}
+setGroup(saved);
+
+// ---------- Area J close-up ----------
+const JRAW=`c2 8i.6 8j.f~c1 dc.c dc.a~c1 de.6 df.b~a2 5d.5i 5b.6~m1 f2.g 9b.46~c2 dg.f dd.g~c1 eo.e dg.e~c2 dd.g dc.c~c1 dc.s dd.g~c1 df.b dr.e eo.e~c2 dc.c df.b~c1 dg.f dc.s~c2 df.b dg.f~a1 cw.1p fd.0~c1 dd.g cm.c c2.1~c1 ck.6 cx.c dc.c~c2 dc.s dd.1e~a2 fa.d d1.1v~m1 c9.27 ey.g~a2 oz.4f ow.4i~c2 fa.d me.b~c2 eo.e ew.d~a2 fn.4 fa.d~m1 ey.g f4.b~m1 f8.b f2.g~c2 ew.d fa.d~m1 fk.2 f8.b~c1 i7.d i7.s~c1 i7.s i9.2l i7.2x~c1 i6.2x i7.1n i5.d~c2 ln.2l ln.b~c2 o0.b oy.a~c2 me.b o0.b~a2 1i.9b p.9o~a1 5o.6c 5w.65 6k.5s~c2 6c.6d 5u.6x 5j.7r 4s.8l 4b.9l~a1 5f.6d 5d.5i~c1 7g.58 8x.48 91.48 96.4c 95.4g 7j.5e~a1 5o.6c 5t.6d~a2 5f.6d 5j.6d~a1 5t.6d 5m.6d~a1 6n.6d 6c.6d~a2 6n.6d 77.6d 7p.6l 8l.6m~m1 54.7h 5j.6w 60.6b 6j.5w 90.4b~m1 8h.4q 6l.5z 60.6g 5d.78 4o.8o~a1 5m.6d 5j.6d~a1 5d.5i 5h.6d~a1 5j.6d 5o.6c~a1 75.5o 6m.63~a2 5w.6d 66.6d~a2 66.6d 6c.6d~c1 6k.5s 7g.58~a2 5t.6d 5w.6d~a1 6c.6d 6n.6d~a1 7j.5e 7e.5i~a1 7e.5i 75.5o~a1 6m.63 6h.69~a1 6h.69 6c.6d~c2 2g.cy 4m.89 5a.6d~a2 5a.6d 4z.6e 4q.6j 2p.8h 23.8y~c2 4b.9l 2p.cy~m1 2k.cy 54.7h~a2 23.8y 1i.9b~a2 5a.6d 5b.6d~a2 5b.6d 5f.6d~m1 4h.93 3z.a3~m1 4o.8o 4h.93~m1 3z.a3 35.bt~m1 99.44 c9.27~c2 d1.1v ac.3l 9j.47~c2 dc.6n dc.1n~a2 a9.6m jy.6n k6.6o ki.6w kp.6z nm.6y~m1 9b.46 91.4c~m1 90.4b 99.44~m1 91.4c 8h.4q~c1 8s.6m 8t.6c~c1 8d.4w 8m.57 92.5g 95.5o 95.5z 8t.6d 8s.6m~c1 8t.6c 93.61 94.5m 8z.5g 8n.59 8b.4x~a1 9u.6m a9.6m~a1 a9.6m 9u.6m~a2 8l.6m 9u.6m~c1 ln.2l lp.39 m6.40 mb.4d mb.4o m6.5a m6.5o ma.60 mk.6l mm.6z~c1 mk.6z mj.6m m8.5z m4.5k m5.59 ma.4o m9.4c m6.43 ln.38 ln.2l~a1 f9.b3 et.b8 ec.bl~a1 ea.bk el.ba f0.b3~a2 g7.6o g8.a7~a1 g6.ak fw.av fn.b0 f9.b3~a1 fm.ay g0.ap~a1 g8.a7 g8.af g6.ak~a1 g7.ae g8.a7~a1 g4.aj g7.ae~a1 f7.b1 ff.az~a1 ff.az fm.ay~a1 g0.ap g4.aj~a1 f0.b3 f7.b1~c2 g6.ak hb.av i1.bb j1.bk je.bu jq.cd~a2 o0.58 ny.5m oa.6m~a2 ow.4i os.4l~a2 o6.50 o0.58~a2 os.4l o6.50~a1 nm.6y nx.6y~a1 nx.6y nm.6y~a2 oa.6m og.72 ol.7a~a2 ol.7a ow.7k~a2 nx.6y of.6y~c2 nb.cj nc.c0 nu.b8 o7.b2 om.b1~c2 6t.cu 6u.d1 6r.dd 6n.dl 6d.dv 6c.e9 60.ey 5r.fd 29.iw~m1 2m.cy h.ij~a1 2j.df 2y.dj 3m.dw 40.e0 53.e0 5n.e2 79.e1 7l.dx 7u.dq 8h.cs 8p.cj 92.cc 9g.c9 9t.ca a7.cf ao.cv az.d1 ba.d4 by.d4~a1 by.d4 bd.d5 b1.d3 ap.cx ab.ck a2.cf 9t.cc 9g.ca 91.ce 8q.ck 8j.cr 7t.dt 7h.e0 77.e3 5i.e4 50.e1 3y.e0 3k.dw 2w.dj 2j.dg~m1 e.ii 2k.cy~c2 1i.fb 2g.cy~m1 35.bt 2m.cy~c2 2p.cy 2i.di~c2 1.j7 5.ig i.i0 1i.fb~m1 h.ij 8.j6~c2 5.ig e.ii~c2 5y.fb 66.f0 6b.en 6b.ek 67.ej~c2 5y.fb 4t.gj~c2 h.ij k.in e.j2 d.jb~a1 ec.bl e1.by dp.c6 dd.ca cq.cb cc.ch c1.ct bx.d6~a1 bx.d6 bv.d4 bx.cw c7.ci cn.ca d9.c8~c2 bx.d6 bx.fa~a1 dv.c0 e5.bq~a1 d9.c8 di.c6~a1 di.c6 dp.c4~a1 dp.c4 dv.c0~c2 bx.fa fe.f9 g3.fc~c2 m1.ct me.dc mi.dq mi.ez mk.fb ml.gq mt.hb nb.hy ne.i8 nf.im nd.iu n4.j4~a1 e5.bq ea.bk~c2 ln.c6 k6.c9 jp.ce j9.cn ix.cy io.dc ib.en i7.ew i0.f3 hr.f8 h4.fc~c2 me.dc mp.d8 n3.d8 n8.d6~c2 n8.d6 nb.d1 nb.cj~c2 n4.j4 n0.j7~c2 hj.iy hi.iv g6.iw g4.iu g3.f3~c2 hi.iv hr.ig id.hv il.h6 k1.hi k5.hi kb.hf~c2 g3.fc h4.fc~c2 jz.hd k5.hg l0.he nj.hg~r0 5r.4 5w.i 67.z 9r.4x a1.5l a3.5z a2.6d 9v.6x 5z.f5 5m.fl 2c.iy~r0 57.6 51.i~r0 51.i 4o.1f 4k.21 4p.5n 4n.65 4h.6j 44.71 2a.8r 1n.96 5.9u~r0 nc.32 md.b~r0 me.b n9.2r~r0 nr.j8 nq.ig ne.fr mr.da~r0 nc.32 n9.2r~r0 nr.7m nq.4d nn.3x nc.32~r0 nr.7v nr.7m~r0 mq.bb no.8t nr.8c nr.7v~r0 mm.bq mq.bb~r0 mq.d6 mk.ce mm.bq~r0 mr.da mq.d6`;
+const JW=-97.44, JS=32.945, JN=33.015;
+const jpt=s=>{const [a,b]=s.split('.');return [parseInt(a,36)*K, (JN-JS)*1e4-parseInt(b,36)]};
+const jll=(lat,lon)=>[(lon-JW)*1e4*K,(JN-lat)*1e4];
+const jsvg=document.getElementById('jmap');
+jsvg.appendChild(el('rect',{x:0,y:0,width:755,height:700,fill:'var(--zipfill)'}));
+// new-development patches (from Sentinel-2, Sep 2026)
+[[33.0040,-97.3690,62],[33.0005,-97.3937,34],[32.9985,-97.4195,40]].forEach(([la,lo,r])=>{const [x,y]=jll(la,lo);jsvg.appendChild(el('circle',{cx:x,cy:y,r,fill:'var(--new)','fill-opacity':'.22',stroke:'var(--new)','stroke-width':'1.5','stroke-dasharray':'4 3'}))});
+const order={c:0,a:1,m:2,r:3};
+JRAW.split('~').map(s=>{const [k,...rest]=s.trim().split(' ');return {k,c:rest.map(jpt)}}).sort((a,b)=>order[a.k[0]]-order[b.k[0]]).forEach(({k,c})=>{
+  const t=k[0];const st=t==='r'?{stroke:'var(--rail)','stroke-width':'3.2','stroke-dasharray':'9 3'}:t==='m'?{stroke:'var(--road-major)','stroke-width':'4'}:t==='a'?{stroke:'var(--road-major)','stroke-width':'2.4'}:{stroke:'var(--road)','stroke-width':'1.5'};
+  jsvg.appendChild(el('polyline',{points:c.map(p=>p.join(',')).join(' '),fill:'none','stroke-linecap':'round','stroke-linejoin':'round',...st}));
+});
+const jlab=(t,lat,lon,dx=0,dy=0,anchor='start')=>{const [x,y]=jll(lat,lon);const e=el('text',{x:x+dx,y:y+dy,'font-size':'15','font-family':'IBM Plex Mono, monospace',fill:'var(--muted)','text-anchor':anchor});e.textContent=t;jsvg.appendChild(e)};
+jlab('US 287',32.985,-97.4285,-10,0,'end'); jlab('Avondale-Haslet Rd',32.9688,-97.395,0,-10); jlab('Northstar Pkwy',32.9962,-97.4135,0,-12); jlab('BNSF',32.978,-97.4105,8,0); jlab('BNSF (Haslet)',32.978,-97.3555,-6,0,'end'); jlab('Willow Springs Rd',32.957,-97.3925,8,0); jlab('John Day Rd',32.985,-97.357,-6,0,'end');
+const JF=[
+ {id:'J1',lvl:'high',t:'Northstar Pkwy crosses the tracks next to an intersection',lat:32.9957,lon:-97.4167,stats:[['Trains/day','18'],['Tracks to next intersection','≈48 m'],['Crashes 2019–24','1']],
+  p:'Northstar is a new 4-lane divided parkway, but it crosses BNSF\'s Wichita Falls line at grade. The Bates Aston Rd / CR 4925 intersection sits about 48 m west of the tracks, which is room for about six cars before a queue backs onto the crossing. New subdivisions are going in on both sides: streets graded by January 2026 were paved by September. The crossing\'s official traffic count is from 2021 (50 vehicles a day), before most of these homes existed.',s:'TxDOT/FRA crossing data; OSM; Esri Jan 2026 + Sentinel-2 Sep 2026'},
+ {id:'J2',lvl:'high',t:'Avondale-Haslet Rd at the western BNSF tracks',lat:32.9688,lon:-97.4041,stats:[['AADT','7,080 (2024)'],['Trains/day','24'],['Blocked-crossing reports','42']],
+  p:'The 2-lane road crosses the tracks at grade, with driveways and a side street within about 100 m on both sides. It\'s inside the stretch Fort Worth is widening to 4 lanes. The published project materials don\'t mention a bridge over the tracks.',s:'TxDOT/FRA crossing data; Esri Jan 2026'},
+ {id:'J3',lvl:'high',t:'Avondale-Haslet Rd at the BNSF tracks in Haslet',lat:32.9700,lon:-97.3544,stats:[['AADT','7,021 (2020)'],['Trains/day','18'],['Blocked-crossing reports','197']],
+  p:'Sendera\'s main route east toward Haslet and FM 156 crosses BNSF\'s Fort Worth line at grade. It has 197 blocked-crossing reports, the most of any crossing in or around 76052 in TxDOT\'s crossing data. The next crossing south, on Blue Mound Rd, is also at grade and has 69 reports. The only way around it that trains can\'t block is Barnwood Dr (J10), which passes under the tracks.',s:'TxDOT/FRA crossing data'},
+ {id:'J9',lvl:'high',t:'The Avondale-Haslet bridge over US 287',lat:32.96793,lon:-97.4187,stats:[['Bridge','1 lane each way'],['East approach','4–5 lanes'],['Signals within 350 m','Saginaw + frontage road'],['Last count','12,920 (2019)']],
+  p:'Avondale-Haslet crosses over US 287 on a bridge that carries one lane in each direction. Just east of it the road opens to 4–5 lanes at the frontage-road signal, and just west of it traffic hits the Saginaw (Business 287) signal, all within about 350 m. That makes the bridge the narrowest point on area J\'s main way out, and the January 2026 image shows a line of westbound cars at the frontage-road signal. The road\'s last count is from 2019, before much of Sendera was built. TxDOT\'s two US 287 plans meet at this interchange, but neither describes widening this bridge.',s:'Esri Jan 2026 (lanes counted on imagery); OSM; TxDOT US 81/287 project pages'},
+ {id:'J4',lvl:'med',t:'Two miles of Avondale-Haslet with no signal',lat:32.9688,lon:-97.4084,stats:[['Signals','0 in ≈2 mi'],['Worst junction','5 approaches, 11° angle']],
+  p:'Between the US 287 frontage road and Sendera Ranch Blvd, Avondale-Haslet passes Avondale Farms Dr (five approaches meeting at a tight angle, marked here), Willow Creek Dr, Willow Springs Rd and the tracks, all without a signal. Fort Worth\'s widening adds signals at two intersections by 2028.',s:'OSM signals + geometry; Esri Jan 2026; City of Fort Worth'},
+ {id:'J5',lvl:'med',t:'The only route to US 287 that avoids the tracks',lat:32.9509,lon:-97.3920,stats:[['Willow Springs AADT','6,810 (2022)'],['Angle','≈52°'],['Signal','none']],
+  p:'Every road from Sendera west to US 287 crosses the tracks at grade except Willow Springs Rd, which runs south to the frontage road. That 2-lane road meets the frontage road at a sharp angle with no signal. TxDOT\'s Avondale-to-I-35W plan (hearing held June 2022) would rebuild Willow Springs Rd to pass under US 287.',s:'OSM network; TxDOT count; Esri Jan 2026; TxDOT project page'},
+ {id:'J6',lvl:'med',t:'Northstar Pkwy ends at a two-way frontage road',lat:32.9933,lon:-97.4309,stats:[['Parkway','4-lane divided'],['Ends at','two-way frontage road'],['Signal','none']],
+  p:'At its west end, the new 4-lane parkway stops in a T at a two-way stretch of the US 287 frontage road, right beside the mainlanes, with no signal. For the neighborhoods between US 287 and the tracks, every route out either uses this frontage road or crosses the tracks at grade (J1). TxDOT\'s Rhome-to-Avondale plan includes an overpass carrying Northstar Pkwy over US 287, but that plan isn\'t funded yet.',s:'OSM; Esri Jan 2026; TxDOT project page'},
+ {id:'J7',lvl:'med',t:'Northstar Pkwy × Sendera Ranch Blvd',lat:32.9922,lon:-97.3971,stats:[['Roads','two divided collectors'],['Signal','none mapped']],
+  p:'The two collectors that serve the north half of Sendera meet here without a signal in OSM or the January 2026 imagery. With the new construction to the north, this is the intersection most likely to need one next.',s:'OSM; Esri Jan 2026'},
+ {id:'J10',lvl:'good',t:'Barnwood Dr: the one road that goes under the tracks',lat:32.9926,lon:-97.3583,stats:[['Crossing','under a BNSF bridge'],['Lanes','2'],['Missing link','John Day Rd, Avondale-Haslet to Barnwood']],
+  p:'Barnwood Dr, off John Day Rd, passes under BNSF\'s Fort Worth line on a rail bridge. It\'s the only road in area J that crosses either rail line on a bridge instead of at the tracks\' level, so it\'s the one route east that a stopped train can\'t close. But it\'s a 2-lane road, and the direct stretch of John Day Rd from Avondale-Haslet north to Barnwood is still only planned: OpenStreetMap lists it as proposed, and the September 2026 satellite image shows open ranch land there. From southern Sendera, reaching the underpass means going through neighborhood streets. Building that missing piece would give the area a train-proof way east.',s:'OSM (rail bridge + proposed road); Esri Jan 2026; Sentinel-2 Sep 2026'},
+ {id:'J8',lvl:'new',t:'New development north of the creek',lat:33.0040,lon:-97.3690,extra:[[33.0005,-97.3937]],stats:[['New since','Jan 2026'],['Nearest outside road','John Day Rd, 2 lanes']],
+  p:'Between the January and September 2026 images, large areas north of the creek were graded and a new street grid went in. A large new building also went up off Rancho Canyon Way (small marker). None of this is in OpenStreetMap or TxDOT\'s inventory yet. The nearest outside road is John Day Rd, a rural 2-lane county road last counted at about 4,200 vehicles a day.',s:'Sentinel-2 Sep 2025 vs Sep 2026; Esri Jan 2026'}
+];
+LVL.new=['var(--new)','Growth'];LVL.good=['var(--low)','Works'];
+const jlist=document.getElementById('jlist');const jmarks={};
+JF.forEach(f=>{const [c,label]=LVL[f.lvl];const rings=[],gs=[];
+  [[f.lat,f.lon],...(f.extra||[])].forEach(([la,lo],i)=>{const [x,y]=jll(la,lo);const r=i?11:15;
+    const g=el('g',{style:'cursor:pointer'});g.appendChild(el('circle',{cx:x,cy:y,r,fill:c,stroke:'var(--panel)','stroke-width':'2.5'}));
+    const t=el('text',{x,y:y+(i?3.5:4.5),'text-anchor':'middle','font-size':i?'10':'12','font-weight':'700','font-family':'IBM Plex Mono, monospace',fill:'var(--panel)'});t.textContent=f.id;g.appendChild(t);
+    const rg=el('circle',{cx:x,cy:y,r:r+9,fill:'none',stroke:c,'stroke-width':'2.5',opacity:'0'});g.appendChild(rg);jsvg.appendChild(g);rings.push(rg);gs.push(g)});
+  jmarks[f.id]=rings;
+  const d=document.createElement('article');d.className='f';d.tabIndex=0;d.style.setProperty('--c',c);
+  d.innerHTML=`<div class="fh"><span class="id">${f.id}</span><h3>${f.t}</h3><span class="pill">${label}</span></div>
+  <div class="stats">${f.stats.map(([k,v])=>`<span>${k} <b>${v}</b></span>`).join('')}<span>${f.lat.toFixed(4)}, ${f.lon.toFixed(4)}</span></div>
+  <p>${f.p}</p><div class="src">${f.s}</div>`;
+  const on=()=>{jlist.querySelectorAll('.f').forEach(e=>e.classList.remove('on'));Object.values(jmarks).flat().forEach(m=>m.setAttribute('opacity','0'));d.classList.add('on');rings.forEach(r=>r.setAttribute('opacity','1'))};
+  d.addEventListener('click',on);d.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();on()}});
+  gs.forEach(g=>g.addEventListener('click',()=>{on();d.scrollIntoView({behavior:'smooth',block:'nearest'})}));
+  jlist.appendChild(d);
+});
+</script>
+
+</body>
+</html>

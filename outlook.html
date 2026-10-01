@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>76052 Road Gaps: 2035 Outlook</title>
+<meta name="description" content="Projected cost of the 287/114/35W corridor at current capacity, 2026 to 2035: $1.33B conservative, $4.25B realistic, against a $589.6M unfunded US 287 widening.">
+<!-- Link preview for Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="The 287/114/35W corridor to 2035: what waiting will cost">
+<meta property="og:description" content="Projected cost of the 287/114/35W corridor at current capacity, 2026 to 2035: $1.33B conservative, $4.25B realistic, against a $589.6M unfunded US 287 widening.">
+<meta property="og:image" content="https://loganlaporte.github.io/76052-road-gaps/outlook-preview.png">
+<meta property="og:url" content="https://loganlaporte.github.io/76052-road-gaps/outlook.html">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif;background:#f3f4f2}img{max-width:100%}[hidden]{display:none!important}</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: map + finding list side by side on desktop, stacked on phone; method notes below */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --ink:#1e2327; --muted:#5d666d; --line:#d6dad8;
+  --road:#8f989e; --road-major:#4a5359; --zip:#1e2327; --zipfill:#e8ebe7;
+  --stripe:#d9a300; --high:#c8372d; --med:#d17a00; --low:#4f7f3a; --gone:#8a8f93; --fix:#2f6fb0;
+  --front:#0f8a83; --hood:#7a5cc4; --rail:#6b4a2f; --new:#b8860b;
+  --display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15191c; --panel:#1d2226; --ink:#e7eae8; --muted:#9aa3a9; --line:#343b40;
+  --road:#566067; --road-major:#98a2a8; --zip:#e7eae8; --zipfill:#20262a;
+  --stripe:#f0bd2a; --high:#ef6a5f; --med:#f0a040; --low:#86b86d; --gone:#80878c; --fix:#6aa6e6;
+  --front:#3fc2b9; --hood:#a88cf0; --rail:#c9a27e; --new:#e6b84a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15191c; --panel:#1d2226; --ink:#e7eae8; --muted:#9aa3a9; --line:#343b40;
+  --road:#566067; --road-major:#98a2a8; --zip:#e7eae8; --zipfill:#20262a;
+  --stripe:#f0bd2a; --high:#ef6a5f; --med:#f0a040; --low:#86b86d; --gone:#80878c; --fix:#6aa6e6;
+  --front:#3fc2b9; --hood:#a88cf0; --rail:#c9a27e; --new:#e6b84a; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body)}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 48px;display:grid;gap:28px}
+header{display:grid;gap:8px;border-bottom:4px solid var(--stripe);padding-bottom:18px}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(30px,5vw,46px)/1.05 var(--display);margin:0;text-wrap:balance;letter-spacing:.01em}
+.lede{max-width:68ch;margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.mapbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;display:grid;gap:10px;min-width:0}
+svg{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font:12px var(--mono);color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+.list{display:grid;gap:12px;min-width:0}
+.f{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:6px;padding:14px 16px;display:grid;gap:6px;cursor:pointer}
+.f:focus-visible,.f.on{outline:2px solid var(--c);outline-offset:2px}
+.fh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.id{font:700 15px var(--mono);color:var(--c)}
+.fh h3{font:600 20px/1.2 var(--display);margin:0;letter-spacing:.01em}
+.pill{margin-left:auto;font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:99px;border:1px solid var(--c);color:var(--c);white-space:nowrap}
+.stats{display:flex;flex-wrap:wrap;gap:4px 18px;font:13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.stats b{color:var(--ink);font-weight:500}
+.f p{margin:0;font-size:14px}
+.src{font:12px var(--mono);color:var(--muted)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px 32px}
+.notes h2{font:600 22px var(--display);margin:0 0 6px}
+.notes p,.notes li{font-size:14px;max-width:62ch}
+.notes ul{padding-left:18px;margin:0;display:grid;gap:4px}
+a{color:var(--fix)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:600 12px var(--mono);letter-spacing:.04em;text-transform:uppercase;padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tabs button:focus-visible{outline:2px solid var(--stripe);outline-offset:2px}
+.grp{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.zone{display:grid;gap:14px;border-top:4px solid var(--hood);padding-top:18px}
+.zone h2{font:700 clamp(24px,3.6vw,34px)/1.1 var(--display);margin:0;text-wrap:balance}
+.zone .lede{max-width:72ch}
+.facts{display:flex;flex-wrap:wrap;gap:8px 28px;font:13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.facts b{display:block;font:600 22px var(--display);color:var(--ink)}
+.byline{font:13px var(--mono);color:var(--muted);margin:0}
+.top{display:grid;gap:10px}
+.top h2,.act h2{font:700 clamp(22px,3vw,28px)/1.1 var(--display);margin:0}
+.top5{margin:0;padding-left:1.4em;display:grid;gap:8px;max-width:78ch}
+.top5 li{font-size:16px}
+.top5 li::marker{font:700 18px var(--display);color:var(--high)}
+.top5 a{font:600 12px var(--mono);margin-left:4px}
+.act{display:grid;gap:12px;border-top:4px solid var(--fix);padding-top:18px}
+.actgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:grid;gap:6px;align-content:start;min-width:0}
+.card h3{font:600 20px var(--display);margin:0}
+.card p{margin:0;font-size:14px}
+.contact{font:13px var(--mono);color:var(--muted)}
+.sel{user-select:all;color:var(--ink)}
+.foot{font:12px var(--mono);color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+.sitenav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font:600 13px var(--mono);margin:0 0 14px;padding:0 0 10px;border-bottom:1px solid var(--line)}.sitenav a{color:var(--ink);text-decoration:none}.sitenav a[aria-current]{color:var(--muted);pointer-events:none}.sitenav a:not([aria-current]){text-decoration:underline;text-underline-offset:3px}
+.traffic{display:grid;gap:14px;border-top:4px solid var(--high);padding-top:18px}
+.traffic h2{font:700 clamp(24px,3.6vw,34px)/1.1 var(--display);margin:0;text-wrap:balance}
+.traffic h3{font:600 20px var(--display);margin:6px 0 0}
+.traffic .lede{max-width:72ch}
+.chartbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;min-width:0;overflow:hidden}
+.chartbox .tk{font:12px var(--mono);fill:var(--muted)}.chartbox .ll{font:600 13px var(--mono)}.chartbox .bl{font:600 15px var(--body);fill:var(--ink)}.chartbox .bv{font:600 14px var(--mono);fill:var(--ink)}
+.tnote{font:12px var(--mono);color:var(--muted);max-width:90ch;margin:0}
+.ttable{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px}.ttable table{border-collapse:collapse;width:100%;min-width:560px;font:14px var(--body);font-variant-numeric:tabular-nums}.ttable th{font:600 12px var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}.ttable td{padding:10px 12px;border-bottom:1px solid var(--line)}.ttable tr:last-child td{border-bottom:0}.ttable td:first-child{font-weight:600}.ttable small{color:var(--muted)}.ttable .bad{color:var(--high);font-weight:600}.ttable .warn{color:var(--med);font-weight:600}
+.tgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}@media (max-width:860px){.tgrid{grid-template-columns:1fr}}
+
+:root{--s287:#c8372d;--sah:#2f6fb0;--sbu:#d17a00;--s156:#7a5cc4}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--s287:#e65a50;--sah:#5a96d6;--sbu:#c97d22;--s156:#9679e0}}
+:root[data-theme="dark"]{--s287:#e65a50;--sah:#5a96d6;--sbu:#c97d22;--s156:#9679e0}
+.sec{display:grid;gap:14px;border-top:4px solid var(--line);padding-top:18px}
+.sec h2{font:700 clamp(24px,3.6vw,34px)/1.1 var(--display);margin:0;text-wrap:balance}
+.sec h3,.chartbox h3,.cols h3{font:600 20px var(--display);margin:0}
+#us287,#bridge{border-top-color:var(--high)}#fm156{border-top-color:var(--hood)}
+.chartbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;min-width:0;display:grid;gap:8px}
+.chartbox svg{width:100%;height:auto;overflow:visible}
+.chartbox .tk,svg .tk{font:12px var(--mono);fill:var(--muted)}svg .ll{font:600 13px var(--mono)}svg .bl{font:600 14px var(--body);fill:var(--ink)}svg .bv{font:600 13px var(--mono);fill:var(--ink)}svg .bvk{font:700 14px var(--mono);fill:var(--high)}
+svg .ml{font:600 12px var(--mono);fill:var(--ink);paint-order:stroke;stroke:var(--zipfill);stroke-width:3px}svg .mn{font:700 12px var(--mono);fill:var(--bg)}
+svg .grid{stroke:var(--line);stroke-width:1}
+.hit{cursor:default;outline:none}.hit:focus-visible{outline:2px solid var(--stripe)}
+.tgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}@media (max-width:860px){.tgrid{grid-template-columns:1fr}}
+.tnote{font:12px var(--mono);color:var(--muted);max-width:90ch;margin:0}
+.facts.big b{font-size:clamp(26px,4vw,38px)}.facts.big span{max-width:22ch}
+.hot{margin:0;padding-left:1.6em;display:grid;gap:10px;align-content:start}.hot li{display:grid;gap:2px}.hot li::marker{font:700 16px var(--mono);color:var(--ink)}.hot b{font-weight:600}.hot span{font:13px var(--mono);color:var(--muted)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px 32px}.cols ul{padding-left:18px;margin:6px 0 0;display:grid;gap:6px}.cols li,.cols p{font-size:14px;max-width:62ch}.cols p{margin:6px 0 0}
+#meaning{border-top-color:var(--stripe)}
+#tip{position:fixed;z-index:10;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:13px var(--body);box-shadow:0 4px 16px rgba(0,0,0,.18);max-width:260px;display:grid;gap:2px}
+#tip b{font-weight:600}#tip .tt{font-weight:600;margin-top:2px}#tip .dot{margin-right:6px;vertical-align:-1px}
+.tables summary{cursor:pointer;font:600 14px var(--mono)}.tables{display:grid;gap:12px}
+.ttable{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px;margin-top:12px}.ttable table{border-collapse:collapse;width:100%;min-width:640px;font:13px var(--body);font-variant-numeric:tabular-nums}.ttable th{font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}.ttable td{padding:7px 10px;border-bottom:1px solid var(--line)}
+
+#growth,#scen{border-top-color:var(--high)}#wait{border-top-color:var(--sbu)}
+.scen{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.scard{border-left:6px solid var(--sah)}.scard.real{border-left-color:var(--s287)}
+.stag{font:600 12px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.sbig{font:700 clamp(40px,7vw,64px)/1 var(--display);color:var(--ink)}.scard.real .sbig{color:var(--s287)}
+.scard ul{padding-left:18px;margin:4px 0;display:grid;gap:4px;font-size:14px}
+.ttable td b{font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <nav class="sitenav" aria-label="76052 Road Gaps pages">76052 Road Gaps · <a href="https://loganlaporte.github.io/76052-road-gaps/">Summary &amp; what you can do</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/details.html">Full data &amp; methods</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/crashes.html">Crashes</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/corridor.html">287/114/35W Corridor</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/cost.html">US 287 Cost of Delay</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/outlook.html" aria-current="page">2035 Outlook</a></nav>
+  <div class="eyebrow">Outlook to 2035 · The 287/114/35W corridor · Census, NCTCOG, TxDOT, TTI and FHWA data</div>
+  <h1>The 287/114/35W corridor to 2035: what waiting will cost</h1>
+  <p class="lede">The towns this corridor serves are among the fastest-growing in the country. Northlake has nearly tripled since the 2020 Census and Haslet has more than doubled. Fort Worth added more residents in 2025 than any U.S. city but one. Traffic on US 287, SH 114 and I-35W has grown 5.8% to 6.8% a year since 2016. The main-lane widening that would add capacity to US 287 ($589.6 million) is not in TxDOT's 10-year plan, with estimated letting in 2035.</p>
+  <p class="lede">This page projects what the corridor will cost travelers, businesses and the public between 2026 and 2035 if capacity is not added. It builds on the measured costs in the <a href="https://loganlaporte.github.io/76052-road-gaps/cost.html">US 287 cost of delay</a> and <a href="https://loganlaporte.github.io/76052-road-gaps/corridor.html">corridor</a> pages and draws two conclusions: a <strong>conservative</strong> one that counts only out-of-pocket costs and assumes growth slows, and a <strong>realistic</strong> one that uses FHWA's standard crash valuation and assumes recent trends continue.</p>
+  <p class="byline">Independent analysis by a 76052 resident. Projections are the author's own estimates built on public data; they are not forecasts by TxDOT, TTI, NCTCOG or any agency. Not affiliated with TxDOT, TTI, FHWA, NCTCOG, the City of Fort Worth, the City of Haslet, the City of Rhome, or Tarrant, Denton or Wise County.</p>
+</header>
+
+<div class="facts big" aria-label="Key figures">
+  <span><b>$1.33B</b>conservative cost of the corridor as-is, 2026 to 2035, plus construction inflation</span>
+  <span><b>$4.25B</b>realistic cost of the corridor as-is, 2026 to 2035, plus construction inflation</span>
+  <span><b>$589.6M</b>US 287 main-lane widening, unfunded, est. letting 2035</span>
+  <span><b>$180–250M</b>added to the widening's price by construction inflation if it waits until 2035</span>
+</div>
+
+<section class="sec" id="growth" aria-labelledby="h-growth">
+  <h2 id="h-growth">Growth is not slowing down</h2>
+  <p class="lede">NCTCOG's January 2025 estimates show the North Texas region added 879,669 residents in five years, about 176,000 a year. The towns along this corridor grew many times faster. Census Bureau estimates released in May 2026 show Fort Worth added 19,512 residents between July 2024 and July 2025, second only to Charlotte among U.S. cities, and passed 1 million residents.</p>
+  <div class="tgrid">
+    <div class="chartbox"><h3>Population growth, 2020 Census to January 2025</h3><svg id="c-pop" role="img" aria-label="Bar chart of percent population growth from 2020 to 2025 for Northlake, Haslet, Justin, Denton County, Fort Worth, the 12-county region and Tarrant County"></svg><p class="tnote">Source: NCTCOG 2025 Population Estimates. Hover or tap for counts.</p></div>
+    <div class="chartbox"><h3>Average daily traffic, 2016 to 2025</h3><div class="legend"><span><i class="dot" style="background:var(--s287)"></i>US 287</span><span><i class="dot" style="background:var(--sah)"></i>SH 114</span><span><i class="dot" style="background:var(--sbu)"></i>I-35W</span></div><svg id="c-aadt" role="img" aria-label="Line chart of average daily traffic on US 287, SH 114 and I-35W in the corridor, 2016 to 2025"></svg><p class="tnote">Mean AADT of TxDOT count stations on each highway within the corridor. Compound growth 2016 to 2025: US 287 6.8%, SH 114 6.1%, I-35W 5.9% a year.</p></div>
+  </div>
+  <div class="facts">
+    <span><b>$12.9B</b>AllianceTexas economic impact in 2025, with 73,134 direct jobs and 602 companies</span>
+    <span><b>4.2M → 8.4M</b>annual trucks at the BNSF Alliance intermodal facility, now and projected for 2035</span>
+    <span><b>$18.3B</b>invested at AllianceTexas in 2025 ($16.7B private)</span>
+    <span><b>+178% / +158%</b>Northlake / Haslet population, 2020 to 2025</span>
+  </div>
+  <p class="lede">The corridor's three highways carry commuters from these new neighborhoods and freight to and from AllianceTexas, one of the region's largest employment centers. Truck volume at the Alliance intermodal yard alone is projected to double by 2035. That growth depends on roads that are already near capacity.</p>
+</section>
+
+<section class="sec" id="capacity" aria-labelledby="h-cap">
+  <h2 id="h-cap">When demand passes capacity</h2>
+  <p class="lede">The <a href="https://loganlaporte.github.io/76052-road-gaps/corridor.html">corridor page</a> estimated peak-hour volume-to-capacity (V/C) at three count stations. A V/C above 1.0 means more vehicles want to use the road in the peak hour than it can carry: queues form and delay grows much faster than traffic. The table projects each station forward under both scenarios.</p>
+  <div class="ttable"><table><thead><tr><th>Location</th><th>2025 AADT</th><th>2025 V/C</th><th>Conservative (3%/yr): V/C 2035 · reaches 1.0</th><th>Realistic (station trend): V/C 2035 · reaches 1.0</th></tr></thead><tbody id="vcrows"></tbody></table></div>
+  <p class="tnote">Peak-direction V/C uses TxDOT K and D factors and per-lane capacity adjusted for heavy vehicles (see the corridor page). Realistic growth is each station's measured compound rate: I-35W 3.8%, US 287 6.7%, SH 114 10.9% a year. Planning-level estimates, not a traffic study.</p>
+</section>
+
+<section class="sec" id="today" aria-labelledby="h-today">
+  <h2 id="h-today">The starting point: what the corridor costs today</h2>
+  <p class="lede">Two measured costs form the baseline. <strong>Congestion</strong> is TTI's measured cost of passenger and truck delay plus wasted fuel for 2024, on the five TTI segments that make up the corridor's highways. <strong>Crashes</strong> are every reported crash on the same highways, valued with FHWA's 2024 cost per crash by severity and averaged over 2023 to 2025.</p>
+  <div class="ttable"><table><thead><tr><th>Highway segment</th><th>Congestion, 2024</th><th>Crashes, comprehensive (2023–25 avg)</th><th>Crashes, economic (2023–25 avg)</th></tr></thead><tbody id="baserows"></tbody></table></div>
+  <p class="tnote">Congestion: TTI segments 8000215 and 8000216 (US 287), 8000102 (SH 114), 8000007 and 8000008 (I-35W). Congestion on I-35W from the US 287 merge south to Loop 820 ($36.7M in 2024) is outside the corridor and not counted. Crash cost: comprehensive includes quality-of-life losses; economic is medical, emergency services, lost productivity, property damage and insurance administration only.</p>
+  <div class="facts">
+    <span><b>$56.5M</b>congestion cost in 2024, up from $43.7M in 2019 (5.3% a year)</span>
+    <span><b>$230M</b>comprehensive crash cost a year, 2023–25 average</span>
+    <span><b>$46M</b>economic crash cost a year, 2023–25 average</span>
+  </div>
+</section>
+
+<section class="sec" id="scen" aria-labelledby="h-scen">
+  <h2 id="h-scen">Two conclusions for 2026 to 2035</h2>
+  <div class="scen">
+    <div class="card scard"><div class="stag">Conservative</div><div class="sbig">$1.15B</div><p>in congestion and out-of-pocket crash costs from 2026 through 2035, rising from $106M in 2026 to $124M in 2035. Add <b>$180M</b> in construction inflation on the widening: <b>$1.33B</b>.</p>
+      <ul><li>Traffic and congestion cost grow 3% a year, about half the corridor's 2016–2025 traffic growth.</li><li>Crash costs held flat at the 2023–25 level.</li><li>Crashes counted at <b>economic</b> cost only (no quality-of-life losses).</li><li>Construction costs rise 3% a year.</li><li>2024 dollars; no general inflation added.</li></ul>
+      <p class="tnote">Cumulative cost passes the $589.6M widening estimate in 2031.</p></div>
+    <div class="card scard real"><div class="stag">Realistic</div><div class="sbig">$4.00B</div><p>in congestion and crash costs from 2026 through 2035, rising from $317M in 2026 to $494M in 2035. Add <b>$250M</b> in construction inflation on the widening: <b>$4.25B</b>.</p>
+      <ul><li>Congestion cost keeps growing at its measured 2019–2024 rate, 5.3% a year, still below traffic growth.</li><li>Crash costs grow 5% a year, in line with traffic (constant crash rate per mile driven).</li><li>Crashes counted at FHWA <b>comprehensive</b> cost, the measure FHWA recommends for benefit-cost analysis.</li><li>Construction costs rise 4% a year, close to TxDOT's Highway Cost Index average since 2012.</li><li>2024 dollars; no general inflation added.</li></ul>
+      <p class="tnote">Cumulative cost passes the $589.6M widening estimate in 2027.</p></div>
+  </div>
+  <div class="tgrid">
+    <div class="chartbox"><h3>Annual cost of the corridor as-is ($M)</h3><div class="legend"><span><i class="dot" style="background:var(--sah)"></i>Conservative</span><span><i class="dot" style="background:var(--s287)"></i>Realistic</span></div><svg id="c-annual" role="img" aria-label="Bar chart of projected annual corridor cost under conservative and realistic scenarios, 2026 to 2035"></svg><p class="tnote">Congestion plus crashes, 2024 dollars.</p></div>
+    <div class="chartbox"><h3>Cumulative cost vs. the widening estimate ($M)</h3><div class="legend"><span><i class="dot" style="background:var(--sah)"></i>Conservative</span><span><i class="dot" style="background:var(--s287)"></i>Realistic</span><span><i class="dot" style="background:var(--ink)"></i>$589.6M widening</span></div><svg id="c-cum" role="img" aria-label="Line chart of cumulative projected corridor cost under both scenarios, 2026 to 2035, against the $589.6 million widening estimate"></svg><p class="tnote">Excludes construction inflation, shown separately below.</p></div>
+  </div>
+  <p class="lede"><strong>US 287 alone.</strong> The widening would add lanes to US 287 only, so it would not remove the SH 114 and I-35W costs above. On US 287 by itself (I-35W to Rhome), the conservative case totals <b>$256M</b> from 2026 to 2035 and the realistic case <b>$1.33B</b>, 2.3 times the widening estimate. In the realistic case, the widening pays for itself if it removes about 44% of US 287's crash and congestion cost over the period.</p>
+</section>
+
+<section class="sec" id="wait" aria-labelledby="h-wait">
+  <h2 id="h-wait">The price of the fix is rising too</h2>
+  <p class="lede">TxDOT's Highway Cost Index tracks what Texas pays for highway construction. Its 12-month average rose 74% from December 2019 to December 2024, then eased in 2025–26 but remains 44% above 2019. Every year the widening waits, it is likely to cost more. Meanwhile TxDOT's 2027 Unified Transportation Program, approved August 27, 2026, totals about $138 billion, down from about $146 billion in the 2026 program, and the US 287 main lanes are still not in it.</p>
+  <div class="tgrid">
+    <div class="chartbox"><h3>TxDOT Highway Cost Index (2012 = 100)</h3><svg id="c-hci" role="img" aria-label="Bar chart of TxDOT Highway Cost Index 12-month moving average, December 2019 to August 2026"></svg><p class="tnote">12-month moving average. Source: TxDOT Highway Cost Index report, August 2026.</p></div>
+    <div class="chartbox"><h3>What waiting to 2035 adds to the $589.6M estimate</h3><svg id="c-esc" role="img" aria-label="Bar chart comparing the widening estimate today with its projected 2035 cost under 3% and 4% annual construction inflation"></svg><p class="tnote">Nine years of escalation from 2026 to 2035 letting. TxDOT estimates may already include some escalation; treat as an order of magnitude.</p></div>
+  </div>
+</section>
+
+<section class="sec" id="meaning" aria-labelledby="h-mean">
+  <h2 id="h-mean">What this means</h2>
+  <div class="cols">
+    <div><h3>Even the floor is large</h3><p>The conservative case counts only cash costs, assumes traffic growth halves and crashes stop rising. It still reaches $1.33B by 2035, about $291,000 a day in 2026 and $341,000 a day by 2035.</p></div>
+    <div><h3>The realistic case is still restrained</h3><p>It grows congestion cost more slowly than traffic, although delay normally rises faster than volume once a road passes capacity. It reaches about $1.4 million a day by 2035, $4.25B over ten years.</p></div>
+    <div><h3>Not counted here</h3><ul><li>Development, jobs and tax base that locate elsewhere because the corridor is unreliable.</li><li>The extra congestion on I-35W south of the US 287 merge ($36.7M in 2024).</li><li>Delay on local roads as traffic diverts off the highways.</li><li>Emissions and vehicle wear beyond TTI's fuel estimate.</li></ul></div>
+  </div>
+  <p class="lede">Neither conclusion is a forecast. Both show the same thing: on any reasonable assumption, the cost of leaving this corridor at its current capacity through 2035 is larger than the cost of the widening that is waiting for funding.</p>
+</section>
+
+<section class="notes" id="method" aria-labelledby="h-method">
+  <div><h2 id="h-method">Method</h2>
+    <p><b>Baseline.</b> Congestion: TTI's 2024 annual congestion cost (passenger delay at $24.01 per person-hour, truck delay at $80.16 per truck-hour, plus wasted fuel) for five corridor segments. Crashes: TxDOT CRIS crashes on US 287 (I-35W to Rhome) and on SH 114 and I-35W inside the corridor, valued with FHWA 2024 KABCO costs per crash and averaged over 2023–2025.</p>
+    <p><b>Projection.</b> Each year's cost = baseline × (1 + growth)<sup>year − 2024</sup>, summed for 2026–2035. All values in 2024 dollars. Construction inflation = $589.6M × ((1 + rate)<sup>9</sup> − 1).</p>
+    <p><b>Growth rates.</b> Conservative 3% (traffic and congestion) and 0% (crashes). Realistic 5.3% (TTI corridor congestion cost, 2019–2024) and 5% (crashes; corridor AADT grew 5.8–6.8% a year, 2016–2025). Construction: 3% and 4% (TxDOT HCI rose from 100 in 2012 to 175.9 in August 2026, about 4% a year).</p>
+  </div>
+  <div><h2>Limitations</h2><ul>
+    <li>TTI congestion costs are in each report year's dollars; part of the 2019–2024 growth reflects updated values of time.</li>
+    <li>Fatal crashes are rare and drive comprehensive cost; single years swing widely.</li>
+    <li>V/C estimates are planning-level, not a traffic operations study.</li>
+    <li>Population figures are estimates; NCTCOG and Census methods differ.</li>
+    <li>The widening would not remove all of the projected cost; the US 287-only figures are the fairest comparison.</li></ul></div>
+  <div><h2>Sources</h2><ul>
+    <li><a href="https://rdc.dfwmaps.com/pdfs/2025%20NCTCOG%20Population%20Estimates%20Publication.pdf" target="_blank" rel="noopener">NCTCOG 2025 Population Estimates</a></li>
+    <li><a href="https://www.census.gov/newsroom/press-releases/2026/vintage-2025-city-town-pop-estimates.html" target="_blank" rel="noopener">U.S. Census Bureau, Vintage 2025 city and town estimates (May 2026)</a></li>
+    <li><a href="https://www.hillwood.com/newsroom/press-releases/alliancetexas-drives-142-9-billion-in-economic-impact-for-north-texas/" target="_blank" rel="noopener">Hillwood: AllianceTexas 2025 economic impact (Feb 24, 2026)</a></li>
+    <li><a href="https://www.alliancetexasmiz.com/news/1-5-billion-in-road-projects-planned-along-us-287-heres-the-timeline/" target="_blank" rel="noopener">AllianceTexas MIZ: $1.5B in road projects along US 287 (Mar 18, 2026)</a></li>
+    <li><a href="https://mobility.tamu.edu/texas-most-congested-roadways/" target="_blank" rel="noopener">TTI: Texas' most congested road segments</a> and <a href="https://mobility.tamu.edu/umr/media-information/answers-to-many-of-your-questions" target="_blank" rel="noopener">value of time</a></li>
+    <li><a href="https://highways.dot.gov/sites/fhwa.dot.gov/files/2025-10/CrashCostFactSheet_508_OCT2025.pdf" target="_blank" rel="noopener">FHWA crash cost fact sheet (2024 dollars)</a></li>
+    <li><a href="https://cris.dot.state.tx.us/public/Query/app/home" target="_blank" rel="noopener">TxDOT CRIS</a>, data as of September 30, 2026</li>
+    <li><a href="https://www.txdot.gov/content/dam/docs/division/cst/202608-hci-report.pdf" target="_blank" rel="noopener">TxDOT Highway Cost Index, August 2026</a></li>
+    <li><a href="https://www.txdot.gov/about/newsroom/statewide/inside-scoop-texas-transportation-commission-august-2026.html" target="_blank" rel="noopener">TxDOT: 2027 UTP approval (Aug 2026)</a> and <a href="https://gov.texas.gov/news/post/governor-abbott-announces-over-146-billion-texas-transportation-investment" target="_blank" rel="noopener">2026 UTP ($146B)</a></li>
+    <li>TxDOT Project Tracker (US 81/287 CSJs 0014-15-037, 0014-15-076, 0013-08-111), retrieved September 30, 2026</li></ul></div>
+</section>
+
+<details class="tables"><summary>Show the projection tables</summary><div id="tables"></div></details>
+
+<div class="foot">Crash data: TxDOT CRIS, compiled from Texas Peace Officer's Crash Reports (CR-3). Congestion data: Texas A&amp;M Transportation Institute. Projections, analysis and conclusions are the author's own, not those of the State of Texas, TxDOT, TTI or NCTCOG. <a href="https://loganlaporte.github.io/76052-road-gaps/">Back to the summary</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/cost.html">US 287 Cost of Delay</a>. Corrections are welcome.</div>
+</div>
+<div id="tip" role="tooltip" hidden></div>
+<script>window.OUT={"cons":{"p":{"cg":0.03,"crash":46.06666666666667,"crg":0.0,"esc":0.03},"rows":[{"y":2026,"cong":59.97,"crash":46.07,"tot":106.04,"cum":106.0},{"y":2027,"cong":61.77,"crash":46.07,"tot":107.84,"cum":213.9},{"y":2028,"cong":63.63,"crash":46.07,"tot":109.69,"cum":323.6},{"y":2029,"cong":65.54,"crash":46.07,"tot":111.6,"cum":435.2},{"y":2030,"cong":67.5,"crash":46.07,"tot":113.57,"cum":548.7},{"y":2031,"cong":69.53,"crash":46.07,"tot":115.59,"cum":664.3},{"y":2032,"cong":71.61,"crash":46.07,"tot":117.68,"cum":782.0},{"y":2033,"cong":73.76,"crash":46.07,"tot":119.83,"cum":901.8},{"y":2034,"cong":75.97,"crash":46.07,"tot":122.04,"cum":1023.9},{"y":2035,"cong":78.25,"crash":46.07,"tot":124.32,"cum":1148.2}],"total":1148.2,"esc":179.7,"cong_tot":687.5,"crash_tot":460.7,"y2035":124.32,"perday2035":340603,"perday2026":290521,"cross":2031,"us287":256.5},"real":{"p":{"cg":0.053,"crash":230.4666666666666,"crg":0.05,"esc":0.04},"rows":[{"y":2026,"cong":62.68,"crash":254.09,"tot":316.77,"cum":316.8},{"y":2027,"cong":66.01,"crash":266.79,"tot":332.8,"cum":649.6},{"y":2028,"cong":69.5,"crash":280.13,"tot":349.64,"cum":999.2},{"y":2029,"cong":73.19,"crash":294.14,"tot":367.33,"cum":1366.5},{"y":2030,"cong":77.07,"crash":308.85,"tot":385.91,"cum":1752.5},{"y":2031,"cong":81.15,"crash":324.29,"tot":405.44,"cum":2157.9},{"y":2032,"cong":85.45,"crash":340.5,"tot":425.96,"cum":2583.8},{"y":2033,"cong":89.98,"crash":357.53,"tot":447.51,"cum":3031.4},{"y":2034,"cong":94.75,"crash":375.41,"tot":470.16,"cum":3501.5},{"y":2035,"cong":99.77,"crash":394.18,"tot":493.95,"cum":3995.5}],"total":3995.5,"esc":249.6,"cong_tot":799.6,"crash_tot":3195.9,"y2035":493.95,"perday2035":1353288,"perday2026":867863,"cross":2027,"us287":1328.9},"base":{"cong24":56.531896,"cong19":43.72448000000001,"g_obs":0.052722195389949045,"crash_comp":230.4666666666666,"crash_econ":46.06666666666667,"hci_rate":0.03925527360277625},"vc":[{"name":"I-35W N of Eagle Pkwy (2 GP lanes/dir, no TEXpress)","aadt":90890,"vc25":0.95,"cagr":3.8,"cons_vc35":1.28,"cons_aadt35":122100.0,"cons_yr":2027,"real_vc35":1.38,"real_aadt35":132000.0,"real_yr":2027},{"name":"US 287 at N Tarrant/Harmon (2 lanes/dir)","aadt":81110,"vc25":0.84,"cagr":6.7,"cons_vc35":1.13,"cons_aadt35":109000.0,"cons_yr":2031,"real_vc35":1.61,"real_aadt35":155100.0,"real_yr":2028},{"name":"SH 114 west of FM 156 (2 lanes/dir, at-grade)","aadt":43040,"vc25":0.63,"cagr":10.9,"cons_vc35":0.85,"cons_aadt35":57800.0,"cons_yr":2041,"real_vc35":1.77,"real_aadt35":121100.0,"real_yr":2030}],"aadt":{"US 287":{"2016":33338,"2017":33985,"2018":35540,"2019":42172,"2020":41330,"2021":43145,"2022":50022,"2023":58212,"2024":56075,"2025":60182},"SH 114":{"2016":23693,"2017":21270,"2018":20020,"2019":20930,"2020":20113,"2021":26063,"2022":31047,"2023":29917,"2024":30553,"2025":40230},"I-35W":{"2016":63172,"2017":75388,"2018":79806,"2019":85879,"2020":76439,"2021":82865,"2022":82888,"2023":85138,"2024":97710,"2025":105340}},"cagr":{"US 287":0.0678,"SH 114":0.0606,"I-35W":0.0585},"pop":[["Northlake",5201,14448],["Haslet",1952,5032],["Justin",4409,7537],["Denton County",906422,1068355],["Fort Worth",918915,1033932],["12-county region",7698985,8578654],["Tarrant County",2110640,2260330]],"hci":[["Dec 2019",122.05],["Dec 2020",131.09],["Dec 2021",128.26],["Dec 2022",168.74],["Dec 2023",193.43],["Dec 2024",211.94],["Aug 2026",175.92]],"base_tab":[["US 81/287, I-35W to Rhome",8.27,87.4,15.6],["SH 114, US 287 to I-35W",13.57,55.4,10.9],["I-35W, US 287 to SH 114",34.69,87.7,19.6]]};
+(function(){
+const D=window.OUT;
+const NS='http://www.w3.org/2000/svg';
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+const txt=(p,x,y,s,cls,anchor)=>{const t=el('text',{x,y,class:cls||'tk','text-anchor':anchor||'start'},p);t.textContent=s;return t};
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+const tip=document.getElementById('tip');
+function bindTip(node,html){node.setAttribute('tabindex','0');node.classList.add('hit');
+  const show=e=>{tip.innerHTML=html;tip.hidden=false;const r=(e.touches?e.touches[0]:e);let x=(r.clientX||0)+14,y=(r.clientY||0)+14;
+    if(!r.clientX){const b=node.getBoundingClientRect();x=b.left+b.width/2;y=b.top-8}
+    const w=tip.offsetWidth,h=tip.offsetHeight;if(x+w>innerWidth-8)x=innerWidth-w-8;if(y+h>innerHeight-8)y=y-h-28;tip.style.left=x+'px';tip.style.top=y+'px'};
+  node.addEventListener('mousemove',show);node.addEventListener('focus',show);node.addEventListener('touchstart',show,{passive:true});
+  node.addEventListener('mouseleave',()=>tip.hidden=true);node.addEventListener('blur',()=>tip.hidden=true)}
+function axisY(g,x0,x1,Y,max,step,f){for(let v=0;v<=max+1e-9;v+=step){el('line',{x1:x0,x2:x1,y1:Y(v),y2:Y(v),class:'grid'},g);txt(g,x0-6,Y(v)+4,f?f(v):fmt(v),'tk','end')}}
+function roundTop(g,x,y,w,h,r,fill){r=Math.min(r,h,w/2);if(h<=0)return;return el('path',{d:`M${x},${y+h}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h}Z`,fill},g)}
+function bars(id,labels,vals,max,step,color,fmtv,tipf,W=520,H=280){const svg=document.getElementById(id);const L=48,R=10,T=18,B=30;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const n=labels.length,bw=(W-L-R)/n,Y=v=>T+(1-v/max)*(H-T-B);axisY(svg,L,W-R,Y,max,step,fmtv);
+ vals.forEach((v,i)=>{const x=L+i*bw+bw*.2,w=bw*.6;roundTop(svg,x,Y(v),w,Y(0)-Y(v),4,color);txt(svg,x+w/2,Y(v)-6,fmtv(v),'bv','middle');txt(svg,x+w/2,H-10,labels[i],'tk','middle');
+  const hit=el('rect',{x:L+i*bw,y:T,width:bw,height:H-T-B,fill:'transparent'},svg);bindTip(hit,tipf(i))});return svg}
+const M2=v=>'$'+(v>=1000?(v/1000).toFixed(2)+'B':Math.round(v)+'M');
+// population
+(function(){const svg=document.getElementById('c-pop');const P=D.pop,W=520,H=300,L=150,R=56,T=8,B=8;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const rh=(H-T-B)/P.length,max=200,X=v=>L+v/max*(W-L-R);
+ P.forEach((p,i)=>{const g=(p[2]/p[1]-1)*100,y=T+i*rh;const small=i<3;
+  el('rect',{x:L,y:y+rh*.18,width:Math.max(2,X(g)-L),height:rh*.64,rx:3,fill:small?'var(--s287)':'var(--sah)'},svg);
+  txt(svg,L-8,y+rh/2+4,p[0],'bl','end');txt(svg,X(g)+6,y+rh/2+5,'+'+g.toFixed(g<20?1:0)+'%','bv');
+  const hit=el('rect',{x:0,y,width:W,height:rh,fill:'transparent'},svg);bindTip(hit,`<b>${p[0]}</b><div>2020 Census: ${fmt(p[1])}</div><div>Jan 2025 est.: ${fmt(p[2])}</div><div>+${fmt(p[2]-p[1])} residents</div>`)})})();
+// aadt lines
+(function(){const svg=document.getElementById('c-aadt');const W=520,H=300,L=52,R=14,T=14,B=30;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const yrs=[];for(let y=2016;y<=2025;y++)yrs.push(y);const max=120000,X=i=>L+i*(W-L-R)/(yrs.length-1),Y=v=>T+(1-v/max)*(H-T-B);
+ axisY(svg,L,W-R,Y,max,30000,v=>v?(v/1000)+'k':'0');yrs.forEach((y,i)=>{if(i%3===0||y===2025)txt(svg,X(i),H-10,y,'tk','middle')});
+ [['US 287','var(--s287)'],['SH 114','var(--sah)'],['I-35W','var(--sbu)']].forEach(([h,c])=>{const v=yrs.map(y=>D.aadt[h][y]);
+  el('path',{d:v.map((a,i)=>(i?'L':'M')+X(i)+','+Y(a)).join(''),fill:'none',stroke:c,'stroke-width':2.5},svg);
+  v.forEach((a,i)=>{const p=el('circle',{cx:X(i),cy:Y(a),r:3.5,fill:c,stroke:'var(--panel)','stroke-width':1.5},svg);bindTip(p,`<b>${h}, ${yrs[i]}</b><div>${fmt(a)} vehicles/day</div>`)});
+  txt(svg,X(9)-4,Y(v[9])-9,fmt(v[9]),'bv','end')})})();
+// v/c table
+document.getElementById('vcrows').innerHTML=D.vc.map(r=>`<tr><td>${r.name}</td><td>${fmt(r.aadt)}</td><td>${r.vc25.toFixed(2)}</td><td>${r.cons_vc35.toFixed(2)} · <b>${r.cons_yr}</b></td><td>${r.real_vc35.toFixed(2)} · <b>${r.real_yr}</b></td></tr>`).join('');
+// baseline table
+(function(){const t=D.base_tab;let s=[0,0,0];document.getElementById('baserows').innerHTML=t.map(r=>{s[0]+=r[1];s[1]+=r[2];s[2]+=r[3];return `<tr><td>${r[0]}</td><td>$${r[1].toFixed(1)}M</td><td>$${r[2].toFixed(1)}M</td><td>$${r[3].toFixed(1)}M</td></tr>`}).join('')+`<tr><td><b>Corridor total, per year</b></td><td><b>$${s[0].toFixed(1)}M</b></td><td><b>$${s[1].toFixed(1)}M</b></td><td><b>$${s[2].toFixed(1)}M</b></td></tr>`})();
+// annual grouped bars
+(function(){const svg=document.getElementById('c-annual');const Cn=D.cons.rows,Rl=D.real.rows,W=520,H=300,L=52,R=10,T=18,B=30;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const n=Cn.length,bw=(W-L-R)/n,max=500,Y=v=>T+(1-v/max)*(H-T-B);axisY(svg,L,W-R,Y,max,100,v=>'$'+v);
+ Cn.forEach((c,i)=>{const r=Rl[i],x=L+i*bw+bw*.12,w=bw*.36;roundTop(svg,x,Y(c.tot),w,Y(0)-Y(c.tot),3,'var(--sah)');roundTop(svg,x+w+2,Y(r.tot),w,Y(0)-Y(r.tot),3,'var(--s287)');
+  if(i%3===0||i===n-1)txt(svg,x+w,H-10,c.y,'tk','middle');if(i===n-1){txt(svg,x+w*1.5+2,Y(r.tot)-6,'$'+Math.round(r.tot),'bv','middle');txt(svg,x+w/2,Y(c.tot)-6,'$'+Math.round(c.tot),'bv','middle')}
+  const hit=el('rect',{x:L+i*bw,y:T,width:bw,height:H-T-B,fill:'transparent'},svg);bindTip(hit,`<b>${c.y}</b><div class="tt">Conservative: $${c.tot.toFixed(0)}M</div><div>Congestion $${c.cong.toFixed(0)}M · crashes (economic) $${c.crash.toFixed(0)}M</div><div class="tt">Realistic: $${r.tot.toFixed(0)}M</div><div>Congestion $${r.cong.toFixed(0)}M · crashes (comprehensive) $${r.crash.toFixed(0)}M</div>`)})})();
+// cumulative lines
+(function(){const svg=document.getElementById('c-cum');const W=520,H=300,L=56,R=14,T=14,B=30;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const yrs=D.cons.rows.map(r=>r.y),max=4000,X=i=>L+i*(W-L-R)/(yrs.length-1),Y=v=>T+(1-v/max)*(H-T-B);axisY(svg,L,W-R,Y,max,1000,v=>v?'$'+v/1000+'B':'$0');
+ yrs.forEach((y,i)=>{if(i%3===0||i===yrs.length-1)txt(svg,X(i),H-10,y,'tk','middle')});
+ el('line',{x1:L,x2:W-R,y1:Y(589.6),y2:Y(589.6),stroke:'var(--ink)','stroke-width':1.5,'stroke-dasharray':'6 4'},svg);txt(svg,W-R-4,Y(589.6)+16,'Widening $589.6M','tk','end');
+ [[D.cons.rows,'var(--sah)','Conservative'],[D.real.rows,'var(--s287)','Realistic']].forEach(([rows,c,nm])=>{const v=rows.map(r=>r.cum);
+  el('path',{d:v.map((a,i)=>(i?'L':'M')+X(i)+','+Y(a)).join(''),fill:'none',stroke:c,'stroke-width':2.5},svg);
+  v.forEach((a,i)=>{const p=el('circle',{cx:X(i),cy:Y(a),r:3.5,fill:c,stroke:'var(--panel)','stroke-width':1.5},svg);bindTip(p,`<b>Through ${yrs[i]}</b><div>${nm}: ${M2(a)} cumulative</div><div>${(a/589.6).toFixed(1)}× the widening estimate</div>`)});
+  txt(svg,X(v.length-1)-6,Y(v[v.length-1])-10,M2(v[v.length-1]),'bv','end')})})();
+// HCI
+bars('c-hci',D.hci.map(h=>h[0].replace('Dec ','’').replace('Aug 2026','Aug’26')),D.hci.map(h=>h[1]),250,50,'var(--sbu)',v=>String(Math.round(v)),i=>`<b>${D.hci[i][0]}</b><div>HCI ${D.hci[i][1]} (12-month avg)</div><div>${D.hci[i][1]>=122.05?'+':''}${((D.hci[i][1]/122.05-1)*100).toFixed(0)}% vs Dec 2019</div>`);
+// escalation
+(function(){const v=[589.6,589.6+D.cons.esc,589.6+D.real.esc],lab=['Today','2035 at 3%','2035 at 4%'];
+ bars('c-esc',lab,v,900,300,'var(--s287)',x=>'$'+x.toFixed(1)+'M',i=>`<b>${lab[i]}</b><div>$${v[i].toFixed(1)}M</div>${i?`<div>+$${(v[i]-589.6).toFixed(1)}M from waiting</div>`:''}`)})();
+// tables
+(function(){let h='<div class="ttable"><table><thead><tr><th>Year</th><th>Cons. congestion</th><th>Cons. crashes (econ.)</th><th>Cons. total</th><th>Cons. cumulative</th><th>Real. congestion</th><th>Real. crashes (comp.)</th><th>Real. total</th><th>Real. cumulative</th></tr></thead><tbody>';
+ D.cons.rows.forEach((c,i)=>{const r=D.real.rows[i];h+=`<tr><td>${c.y}</td><td>${c.cong.toFixed(1)}</td><td>${c.crash.toFixed(1)}</td><td>${c.tot.toFixed(1)}</td><td>${c.cum.toFixed(1)}</td><td>${r.cong.toFixed(1)}</td><td>${r.crash.toFixed(1)}</td><td>${r.tot.toFixed(1)}</td><td>${r.cum.toFixed(1)}</td></tr>`});
+ document.getElementById('tables').innerHTML=h+'</tbody></table></div><p class="tnote">$ millions, 2024 dollars. Construction inflation on the widening is not included in these columns.</p>'})();
+})();
+</script>
+
+</body>
+</html>

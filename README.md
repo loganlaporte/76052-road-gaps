@@ -7,5 +7,6 @@ Full data and methods: https://loganlaporte.github.io/76052-road-gaps/details.ht
 Crashes: https://loganlaporte.github.io/76052-road-gaps/crashes.html
 287/114/35W Corridor assessment: https://loganlaporte.github.io/76052-road-gaps/corridor.html
 US 287 cost of deferred capacity: https://loganlaporte.github.io/76052-road-gaps/cost.html
+2035 Outlook (cost of waiting, 2026 to 2035): https://loganlaporte.github.io/76052-road-gaps/outlook.html
 
 Map data (c) OpenStreetMap contributors (ODbL).

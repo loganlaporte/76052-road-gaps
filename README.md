@@ -8,5 +8,6 @@ Crashes: https://loganlaporte.github.io/76052-road-gaps/crashes.html
 287/114/35W Corridor assessment: https://loganlaporte.github.io/76052-road-gaps/corridor.html
 US 287 cost of deferred capacity: https://loganlaporte.github.io/76052-road-gaps/cost.html
 2035 Outlook (cost of waiting, 2026 to 2035): https://loganlaporte.github.io/76052-road-gaps/outlook.html
+Spending by district (TxDOT and city road dollars vs. population and growth): https://loganlaporte.github.io/76052-road-gaps/spending.html
 
 Map data (c) OpenStreetMap contributors (ODbL).

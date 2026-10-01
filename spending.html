@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>76052 Road Gaps: Spending by District</title>
+<meta name="description" content="Fort Worth's far north (Council Districts 4, 7, 10) took 49% of 2010-2020 growth but holds 8% of near-term TxDOT highway dollars inside the city.">
+<!-- Link preview for Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Where Fort Worth's road money goes">
+<meta property="og:description" content="Fort Worth's far north (Council Districts 4, 7, 10) took 49% of 2010-2020 growth but holds 8% of near-term TxDOT highway dollars inside the city.">
+<meta property="og:image" content="https://loganlaporte.github.io/76052-road-gaps/spending-preview.png">
+<meta property="og:url" content="https://loganlaporte.github.io/76052-road-gaps/spending.html">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif;background:#f3f4f2}img{max-width:100%}[hidden]{display:none!important}</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: map + finding list side by side on desktop, stacked on phone; method notes below */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --ink:#1e2327; --muted:#5d666d; --line:#d6dad8;
+  --road:#8f989e; --road-major:#4a5359; --zip:#1e2327; --zipfill:#e8ebe7;
+  --stripe:#d9a300; --high:#c8372d; --med:#d17a00; --low:#4f7f3a; --gone:#8a8f93; --fix:#2f6fb0;
+  --front:#0f8a83; --hood:#7a5cc4; --rail:#6b4a2f; --new:#b8860b;
+  --display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15191c; --panel:#1d2226; --ink:#e7eae8; --muted:#9aa3a9; --line:#343b40;
+  --road:#566067; --road-major:#98a2a8; --zip:#e7eae8; --zipfill:#20262a;
+  --stripe:#f0bd2a; --high:#ef6a5f; --med:#f0a040; --low:#86b86d; --gone:#80878c; --fix:#6aa6e6;
+  --front:#3fc2b9; --hood:#a88cf0; --rail:#c9a27e; --new:#e6b84a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15191c; --panel:#1d2226; --ink:#e7eae8; --muted:#9aa3a9; --line:#343b40;
+  --road:#566067; --road-major:#98a2a8; --zip:#e7eae8; --zipfill:#20262a;
+  --stripe:#f0bd2a; --high:#ef6a5f; --med:#f0a040; --low:#86b86d; --gone:#80878c; --fix:#6aa6e6;
+  --front:#3fc2b9; --hood:#a88cf0; --rail:#c9a27e; --new:#e6b84a; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body)}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 48px;display:grid;gap:28px}
+header{display:grid;gap:8px;border-bottom:4px solid var(--stripe);padding-bottom:18px}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 clamp(30px,5vw,46px)/1.05 var(--display);margin:0;text-wrap:balance;letter-spacing:.01em}
+.lede{max-width:68ch;margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.mapbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;display:grid;gap:10px;min-width:0}
+svg{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font:12px var(--mono);color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+.list{display:grid;gap:12px;min-width:0}
+.f{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:6px;padding:14px 16px;display:grid;gap:6px;cursor:pointer}
+.f:focus-visible,.f.on{outline:2px solid var(--c);outline-offset:2px}
+.fh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.id{font:700 15px var(--mono);color:var(--c)}
+.fh h3{font:600 20px/1.2 var(--display);margin:0;letter-spacing:.01em}
+.pill{margin-left:auto;font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:99px;border:1px solid var(--c);color:var(--c);white-space:nowrap}
+.stats{display:flex;flex-wrap:wrap;gap:4px 18px;font:13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.stats b{color:var(--ink);font-weight:500}
+.f p{margin:0;font-size:14px}
+.src{font:12px var(--mono);color:var(--muted)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px 32px}
+.notes h2{font:600 22px var(--display);margin:0 0 6px}
+.notes p,.notes li{font-size:14px;max-width:62ch}
+.notes ul{padding-left:18px;margin:0;display:grid;gap:4px}
+a{color:var(--fix)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:600 12px var(--mono);letter-spacing:.04em;text-transform:uppercase;padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tabs button:focus-visible{outline:2px solid var(--stripe);outline-offset:2px}
+.grp{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.zone{display:grid;gap:14px;border-top:4px solid var(--hood);padding-top:18px}
+.zone h2{font:700 clamp(24px,3.6vw,34px)/1.1 var(--display);margin:0;text-wrap:balance}
+.zone .lede{max-width:72ch}
+.facts{display:flex;flex-wrap:wrap;gap:8px 28px;font:13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.facts b{display:block;font:600 22px var(--display);color:var(--ink)}
+.byline{font:13px var(--mono);color:var(--muted);margin:0}
+.top{display:grid;gap:10px}
+.top h2,.act h2{font:700 clamp(22px,3vw,28px)/1.1 var(--display);margin:0}
+.top5{margin:0;padding-left:1.4em;display:grid;gap:8px;max-width:78ch}
+.top5 li{font-size:16px}
+.top5 li::marker{font:700 18px var(--display);color:var(--high)}
+.top5 a{font:600 12px var(--mono);margin-left:4px}
+.act{display:grid;gap:12px;border-top:4px solid var(--fix);padding-top:18px}
+.actgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:grid;gap:6px;align-content:start;min-width:0}
+.card h3{font:600 20px var(--display);margin:0}
+.card p{margin:0;font-size:14px}
+.contact{font:13px var(--mono);color:var(--muted)}
+.sel{user-select:all;color:var(--ink)}
+.foot{font:12px var(--mono);color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+.sitenav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font:600 13px var(--mono);margin:0 0 14px;padding:0 0 10px;border-bottom:1px solid var(--line)}.sitenav a{color:var(--ink);text-decoration:none}.sitenav a[aria-current]{color:var(--muted);pointer-events:none}.sitenav a:not([aria-current]){text-decoration:underline;text-underline-offset:3px}
+.traffic{display:grid;gap:14px;border-top:4px solid var(--high);padding-top:18px}
+.traffic h2{font:700 clamp(24px,3.6vw,34px)/1.1 var(--display);margin:0;text-wrap:balance}
+.traffic h3{font:600 20px var(--display);margin:6px 0 0}
+.traffic .lede{max-width:72ch}
+.chartbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;min-width:0;overflow:hidden}
+.chartbox .tk{font:12px var(--mono);fill:var(--muted)}.chartbox .ll{font:600 13px var(--mono)}.chartbox .bl{font:600 15px var(--body);fill:var(--ink)}.chartbox .bv{font:600 14px var(--mono);fill:var(--ink)}
+.tnote{font:12px var(--mono);color:var(--muted);max-width:90ch;margin:0}
+.ttable{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px}.ttable table{border-collapse:collapse;width:100%;min-width:560px;font:14px var(--body);font-variant-numeric:tabular-nums}.ttable th{font:600 12px var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}.ttable td{padding:10px 12px;border-bottom:1px solid var(--line)}.ttable tr:last-child td{border-bottom:0}.ttable td:first-child{font-weight:600}.ttable small{color:var(--muted)}.ttable .bad{color:var(--high);font-weight:600}.ttable .warn{color:var(--med);font-weight:600}
+.tgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}@media (max-width:860px){.tgrid{grid-template-columns:1fr}}
+
+:root{--s287:#c8372d;--sah:#2f6fb0;--sbu:#d17a00;--s156:#7a5cc4}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--s287:#e65a50;--sah:#5a96d6;--sbu:#c97d22;--s156:#9679e0}}
+:root[data-theme="dark"]{--s287:#e65a50;--sah:#5a96d6;--sbu:#c97d22;--s156:#9679e0}
+.sec{display:grid;gap:14px;border-top:4px solid var(--line);padding-top:18px}
+.sec h2{font:700 clamp(24px,3.6vw,34px)/1.1 var(--display);margin:0;text-wrap:balance}
+.sec h3,.chartbox h3,.cols h3{font:600 20px var(--display);margin:0}
+#us287,#bridge{border-top-color:var(--high)}#fm156{border-top-color:var(--hood)}
+.chartbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;min-width:0;display:grid;gap:8px}
+.chartbox svg{width:100%;height:auto;overflow:visible}
+.chartbox .tk,svg .tk{font:12px var(--mono);fill:var(--muted)}svg .ll{font:600 13px var(--mono)}svg .bl{font:600 14px var(--body);fill:var(--ink)}svg .bv{font:600 13px var(--mono);fill:var(--ink)}svg .bvk{font:700 14px var(--mono);fill:var(--high)}
+svg .ml{font:600 12px var(--mono);fill:var(--ink);paint-order:stroke;stroke:var(--zipfill);stroke-width:3px}svg .mn{font:700 12px var(--mono);fill:var(--bg)}
+svg .grid{stroke:var(--line);stroke-width:1}
+.hit{cursor:default;outline:none}.hit:focus-visible{outline:2px solid var(--stripe)}
+.tgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}@media (max-width:860px){.tgrid{grid-template-columns:1fr}}
+.tnote{font:12px var(--mono);color:var(--muted);max-width:90ch;margin:0}
+.facts.big b{font-size:clamp(26px,4vw,38px)}.facts.big span{max-width:22ch}
+.hot{margin:0;padding-left:1.6em;display:grid;gap:10px;align-content:start}.hot li{display:grid;gap:2px}.hot li::marker{font:700 16px var(--mono);color:var(--ink)}.hot b{font-weight:600}.hot span{font:13px var(--mono);color:var(--muted)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px 32px}.cols ul{padding-left:18px;margin:6px 0 0;display:grid;gap:6px}.cols li,.cols p{font-size:14px;max-width:62ch}.cols p{margin:6px 0 0}
+#meaning{border-top-color:var(--stripe)}
+#tip{position:fixed;z-index:10;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:13px var(--body);box-shadow:0 4px 16px rgba(0,0,0,.18);max-width:260px;display:grid;gap:2px}
+#tip b{font-weight:600}#tip .tt{font-weight:600;margin-top:2px}#tip .dot{margin-right:6px;vertical-align:-1px}
+.tables summary{cursor:pointer;font:600 14px var(--mono)}.tables{display:grid;gap:12px}
+.ttable{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px;margin-top:12px}.ttable table{border-collapse:collapse;width:100%;min-width:640px;font:13px var(--body);font-variant-numeric:tabular-nums}.ttable th{font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}.ttable td{padding:7px 10px;border-bottom:1px solid var(--line)}
+
+#share,#state{border-top-color:var(--high)}#city{border-top-color:var(--sah)}
+.ttable td b{font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <nav class="sitenav" aria-label="76052 Road Gaps pages">76052 Road Gaps · <a href="https://loganlaporte.github.io/76052-road-gaps/">Summary &amp; what you can do</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/details.html">Full data &amp; methods</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/crashes.html">Crashes</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/corridor.html">287/114/35W Corridor</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/cost.html">US 287 Cost of Delay</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/outlook.html">2035 Outlook</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/spending.html" aria-current="page">Spending by District</a></nav>
+  <div class="eyebrow">Spending comparison · City of Fort Worth council districts · TxDOT, City of Fort Worth and U.S. Census data</div>
+  <h1>Where Fort Worth's road money goes</h1>
+  <p class="lede">Fort Worth's far north and northwest (Council Districts 4, 7 and 10) hold 30% of the city's residents and absorbed 49% of its population growth between the 2010 and 2020 Censuses. They hold <strong>8%</strong> of the TxDOT highway construction dollars that are funded or scheduled within ten years inside city limits. Most of the state money listed for these districts, 81%, sits in TxDOT's "Planning, 10+ years" category.</p>
+  <p class="lede">City bond money is a different story. Districts 4, 7 and 10 received 33% of the street and transportation bond dollars assigned to specific locations from 2014 to 2026, about in line with their share of residents. The gap is on the state highway side.</p>
+  <p class="byline">Independent analysis by a 76052 resident. Allocations are the author's own, built from public TxDOT, City of Fort Worth and Census data. Not affiliated with TxDOT, the City of Fort Worth, NCTCOG or any council member.</p>
+</header>
+
+<div class="facts big" aria-label="Key figures">
+  <span><b>49%</b>of Fort Worth's 2010–2020 population growth was in Districts 4, 7 and 10</span>
+  <span><b>8%</b>of near-term TxDOT project dollars inside the city are in those districts</span>
+  <span><b>$1,829</b>near-term TxDOT dollars per resident there, vs $6,825 citywide</span>
+  <span><b>81%</b>of their listed TxDOT dollars are in "Planning, 10+ years"</span>
+</div>
+
+<section class="sec" id="share" aria-labelledby="h-share">
+  <h2 id="h-share">Share of residents, growth and money, by area</h2>
+  <p class="lede">Each group of bars compares one part of the city on four measures. If money followed people, the money bars would match the residents bar. If it followed growth, they would match the growth bar.</p>
+  <div class="chartbox"><h3>Share of citywide total (%)</h3><div class="legend"><span><i class="dot" style="background:var(--muted)"></i>Residents, 2020</span><span><i class="dot" style="background:var(--sbu)"></i>Growth, 2010–2020</span><span><i class="dot" style="background:var(--s287)"></i>TxDOT, funded or within 10 years</span><span><i class="dot" style="background:var(--sah)"></i>City street bonds, 2014–2026</span></div><svg id="c-share" role="img" aria-label="Grouped bar chart of each area's share of residents, population growth, near-term TxDOT dollars and city street bond dollars"></svg><p class="tnote">Areas group council districts by direction from downtown. Hover or tap for values.</p></div>
+</section>
+
+<section class="sec" id="state" aria-labelledby="h-state">
+  <h2 id="h-state">State highway projects (TxDOT)</h2>
+  <p class="lede">TxDOT's Project Tracker lists 175 projects that run through Fort Worth city limits. Each project's estimated construction cost is split among council districts by the share of its length inside each one. "Near-term" covers projects under construction, starting soon, or starting within ten years. "Deferred" is TxDOT's "Planning, 10+ years" category.</p>
+  <div class="tgrid">
+    <div class="chartbox"><h3>TxDOT dollars by district ($M)</h3><div class="legend"><span><i class="dot" style="background:var(--s287)"></i>Near-term</span><span><i class="dot" style="background:var(--line)"></i>Deferred 10+ years</span></div><svg id="c-tx" role="img" aria-label="Stacked bar chart of near-term and deferred TxDOT project dollars by council district"></svg><p class="tnote">Districts ordered north to south.</p></div>
+    <div class="chartbox"><h3>Near-term TxDOT dollars per resident</h3><svg id="c-txres" role="img" aria-label="Bar chart of near-term TxDOT dollars per 2020 resident by council district"></svg><p class="tnote">Citywide average $6,825 per resident.</p></div>
+  </div>
+  <p class="lede">The largest near-term state projects sit elsewhere: I-30 reconstruction in the west and central districts, I-820 and SH 183 in the east, and I-35W between downtown and Loop 820. In the far north, the main-lane widenings of US 287 and I-35W are listed for 10+ years. These freeways also carry regional traffic, so a dollar in one district serves drivers from many.</p>
+</section>
+
+<section class="sec" id="city" aria-labelledby="h-city">
+  <h2 id="h-city">City street bonds</h2>
+  <p class="lede">The City of Fort Worth's Bond Tracker maps each transportation bond project from the 2014, 2018, 2022 and 2026 programs. Projects are assigned to the district where they are mapped. $147M in citywide line items (streetlights, signals, citywide reconstruction, grant matches) is left out because it is mapped at City Hall.</p>
+  <div class="tgrid">
+    <div class="chartbox"><h3>City transportation bond dollars by district ($M)</h3><div class="legend"><span><i class="dot" style="background:var(--muted)"></i>2014</span><span><i class="dot" style="background:var(--sah)"></i>2018</span><span><i class="dot" style="background:var(--sbu)"></i>2022</span><span><i class="dot" style="background:var(--s287)"></i>2026</span></div><svg id="c-city" role="img" aria-label="Stacked bar chart of city transportation bond dollars by district and bond year"></svg><p class="tnote">The 2026 program was approved by voters on May 2, 2026.</p></div>
+    <div class="chartbox"><h3>Population growth, 2010 to 2020</h3><svg id="c-growth" role="img" aria-label="Bar chart of population growth by council district, 2010 to 2020"></svg><p class="tnote">Census block groups assigned to today's districts by their center point.</p></div>
+  </div>
+  <p class="lede">The city has put real money into the north: Avondale-Haslet Road, Bonds Ranch Road, Heritage Trace Parkway and Harmon Road. District 7 has the largest 2026 allocation of any district. City bonds build arterials and neighborhood streets, though. The state highways that carry the corridor's commuters and freight, US 287, SH 114 and I-35W, are TxDOT's to fund.</p>
+</section>
+
+<section class="sec" id="table" aria-labelledby="h-table">
+  <h2 id="h-table">District by district</h2>
+  <div class="ttable"><table><thead><tr><th>District</th><th>Area</th><th>2020 pop.</th><th>Growth 2010–20</th><th>TxDOT near-term</th><th>TxDOT deferred</th><th>City bonds 2014–26</th><th>Near-term TxDOT / resident</th><th>City bonds / resident</th></tr></thead><tbody id="rows"></tbody></table></div>
+  <p class="tnote">$ millions unless noted. District 6 has no TxDOT projects in the tracker; its main freeway, Chisholm Trail Parkway, is a toll road.</p>
+</section>
+
+<section class="sec" id="meaning" aria-labelledby="h-mean">
+  <h2 id="h-mean">What this shows, and what it doesn't</h2>
+  <div class="cols">
+    <div><h3>The state gap is real</h3><p>The fastest-growing part of the city has the smallest share of near-term state highway money for its size and growth. Its biggest state projects, the US 287 and I-35W widenings, are the ones listed for 10+ years.</p></div>
+    <div><h3>The city is not the gap</h3><p>City street bonds in Districts 4, 7 and 10 are roughly proportional to population. The city builds the roads it controls. US 287, SH 114 and I-35W are state roads.</p></div>
+    <div><h3>Limits</h3><ul><li>TxDOT's tracker lists current and future projects, not completed ones.</li><li>Freeway dollars serve regional traffic, not only district residents.</li><li>Populations are 2020 Census; the north has grown faster since.</li><li>Haslet, Northlake and other towns on the corridor are outside city limits and not counted.</li></ul></div>
+  </div>
+</section>
+
+<section class="notes" id="method">
+  <div><h2>Method</h2>
+    <p><b>Districts.</b> City of Fort Worth council districts (current map), from the city's open data boundaries service.</p>
+    <p><b>TxDOT.</b> All TxDOT Project Tracker projects intersecting the city (Fort Worth and Dallas districts), retrieved October 1, 2026. Each line was sampled every 100 m and its estimated construction cost split by length among districts; length outside city limits is excluded.</p>
+    <p><b>City bonds.</b> City of Fort Worth Bond Tracker, Transportation department, approved funding for 2014, 2018, 2022 and 2026 bonds, assigned by mapped location.</p>
+    <p><b>Population.</b> 2010 and 2020 Census block groups (TIGERweb), assigned to districts by center point. The sum (899,219) is within 2% of the city's 2020 count.</p></div>
+  <div><h2>Sources</h2><ul>
+    <li><a href="https://www.txdot.gov/projects/project-tracker.html" target="_blank" rel="noopener">TxDOT Project Tracker</a> (TxDOT_Projects feature service)</li>
+    <li><a href="https://www.fortworthtexas.gov/departments/the-fwlab/2026-bond" target="_blank" rel="noopener">City of Fort Worth 2026 Bond Program</a> and Bond Tracker map service</li>
+    <li><a href="https://thetexan.news/elections/2026/fort-worth-residents-approve-645-million-bond-package-mayor-and-city-council-salary-increases/article_eadcaf72-9981-4347-91fc-c8426b79038f.html" target="_blank" rel="noopener">The Texan: 2026 bond approved, $511M for streets (May 4, 2026)</a></li>
+    <li><a href="https://tigerweb.geo.census.gov/tigerwebmain/TIGERweb_main.html" target="_blank" rel="noopener">U.S. Census Bureau TIGERweb</a>, 2010 and 2020 block groups</li>
+    <li>City of Fort Worth open data: council district boundaries</li></ul></div>
+</section>
+
+<div class="foot">Analysis and conclusions are the author's own, not those of TxDOT, the City of Fort Worth or the U.S. Census Bureau. <a href="https://loganlaporte.github.io/76052-road-gaps/">Back to the summary</a> · <a href="https://loganlaporte.github.io/76052-road-gaps/outlook.html">2035 Outlook</a>. Corrections are welcome.</div>
+</div>
+<div id="tip" role="tooltip" hidden></div>
+<script>window.SP={"d":[{"d":"2","lab":"North Central (Northside)","pop20":89188,"pop10":77420,"txn":805.9,"txf":671.1,"bond":[21.4,34.4,41.5,53.1],"city":150.4},{"d":"3","lab":"West","pop20":87774,"pop10":75745,"txn":1213.1,"txf":136.8,"bond":[0,22.9,7.4,24.6],"city":54.9},{"d":"4","lab":"North / Northeast","pop20":92049,"pop10":67009,"txn":147.6,"txf":422.7,"bond":[11.4,34.1,13.2,13.6],"city":72.3},{"d":"5","lab":"East","pop20":91977,"pop10":75537,"txn":1698.7,"txf":758.9,"bond":[15.8,5.7,16.0,25.4],"city":62.9},{"d":"6","lab":"Southwest","pop20":81162,"pop10":73725,"txn":0,"txf":0,"bond":[29.1,30.3,17.6,20.5],"city":97.5},{"d":"7","lab":"Northwest","pop20":88410,"pop10":59300,"txn":59.5,"txf":812.2,"bond":[11.7,13.6,46.8,131.8],"city":203.9},{"d":"8","lab":"South / Southeast","pop20":100249,"pop10":76351,"txn":394.4,"txf":802.9,"bond":[0,14.8,63.7,95.0],"city":173.5},{"d":"9","lab":"Central / Near Southside","pop20":85052,"pop10":76395,"txn":440.6,"txf":0,"bond":[28.8,37.0,50.1,40.1],"city":156.0},{"d":"10","lab":"Far North","pop20":90313,"pop10":63053,"txn":288.2,"txf":925.4,"bond":[14.4,36.9,50.5,16.1],"city":117.9},{"d":"11","lab":"East Central","pop20":93045,"pop10":89570,"txn":1089,"txf":152.7,"bond":[0,16.9,41.4,48.9],"city":107.2}],"g":[{"name":"Far North & Northwest (4, 7, 10)","ds":["4","7","10"],"pop20":270772,"pop10":189362,"txn":495.3,"txf":2160.3,"city":394.1},{"name":"North Central (2)","ds":["2"],"pop20":89188,"pop10":77420,"txn":805.9,"txf":671.1,"city":150.4},{"name":"West (3)","ds":["3"],"pop20":87774,"pop10":75745,"txn":1213.1,"txf":136.8,"city":54.9},{"name":"South (6, 8, 9)","ds":["6","8","9"],"pop20":266463,"pop10":226471,"txn":835.0,"txf":802.9,"city":427.0},{"name":"East (5, 11)","ds":["5","11"],"pop20":185022,"pop10":165107,"txn":2787.7,"txf":911.6,"city":170.1}],"t":{"pop20":899219,"pop10":734105,"txn":6137.0,"txf":4682.7,"city":1196.5,"citywide":147.1}};
+(function(){
+const D=window.SP;
+const NS='http://www.w3.org/2000/svg';
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+const txt=(p,x,y,s,cls,anchor)=>{const t=el('text',{x,y,class:cls||'tk','text-anchor':anchor||'start'},p);t.textContent=s;return t};
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+const tip=document.getElementById('tip');
+function bindTip(node,html){node.setAttribute('tabindex','0');node.classList.add('hit');
+  const show=e=>{tip.innerHTML=html;tip.hidden=false;const r=(e.touches?e.touches[0]:e);let x=(r.clientX||0)+14,y=(r.clientY||0)+14;
+    if(!r.clientX){const b=node.getBoundingClientRect();x=b.left+b.width/2;y=b.top-8}
+    const w=tip.offsetWidth,h=tip.offsetHeight;if(x+w>innerWidth-8)x=innerWidth-w-8;if(y+h>innerHeight-8)y=y-h-28;tip.style.left=x+'px';tip.style.top=y+'px'};
+  node.addEventListener('mousemove',show);node.addEventListener('focus',show);node.addEventListener('touchstart',show,{passive:true});
+  node.addEventListener('mouseleave',()=>tip.hidden=true);node.addEventListener('blur',()=>tip.hidden=true)}
+function axisY(g,x0,x1,Y,max,step,f){for(let v=0;v<=max+1e-9;v+=step){el('line',{x1:x0,x2:x1,y1:Y(v),y2:Y(v),class:'grid'},g);txt(g,x0-6,Y(v)+4,f?f(v):fmt(v),'tk','end')}}
+function roundTop(g,x,y,w,h,r,fill){r=Math.min(r,h,w/2);if(h<=0)return;return el('path',{d:`M${x},${y+h}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h}Z`,fill},g)}
+function bars(id,labels,vals,max,step,color,fmtv,tipf,W=520,H=280){const svg=document.getElementById(id);const L=48,R=10,T=18,B=30;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const n=labels.length,bw=(W-L-R)/n,Y=v=>T+(1-v/max)*(H-T-B);axisY(svg,L,W-R,Y,max,step,fmtv);
+ vals.forEach((v,i)=>{const x=L+i*bw+bw*.2,w=bw*.6;roundTop(svg,x,Y(v),w,Y(0)-Y(v),4,color);txt(svg,x+w/2,Y(v)-6,fmtv(v),'bv','middle');txt(svg,x+w/2,H-10,labels[i],'tk','middle');
+  const hit=el('rect',{x:L+i*bw,y:T,width:bw,height:H-T-B,fill:'transparent'},svg);bindTip(hit,tipf(i))});return svg}
+
+const ORD=['10','4','7','2','11','5','3','9','8','6'];const DD=Object.fromEntries(D.d.map(x=>[x.d,x]));
+const M=v=>'$'+(v>=1000?(v/1000).toFixed(2)+'B':Math.round(v)+'M');
+// grouped share chart
+(function(){const svg=document.getElementById('c-share');const W=900,H=320,L=44,R=10,T=16,B=40;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const t=D.t,newt=t.pop20-t.pop10;const G=D.g.map(g=>({n:g.name,v:[g.pop20/t.pop20,(g.pop20-g.pop10)/newt,g.txn/t.txn,g.city/t.city].map(x=>x*100)}));
+ const cols=['var(--muted)','var(--sbu)','var(--s287)','var(--sah)'],names=['Residents','Growth','TxDOT near-term','City bonds'];
+ const max=50,Y=v=>T+(1-v/max)*(H-T-B);axisY(svg,L,W-R,Y,max,10,v=>v+'%');const gw=(W-L-R)/G.length;
+ G.forEach((g,i)=>{const bw=gw*0.8/4;g.v.forEach((v,k)=>{const x=L+i*gw+gw*.1+k*bw;roundTop(svg,x+1,Y(v),bw-2,Y(0)-Y(v),3,cols[k]);txt(svg,x+bw/2,Y(v)-5,Math.round(v)+'%','tk','middle')});
+  const words=g.n.replace(/ \(.*\)/,'');txt(svg,L+i*gw+gw/2,H-22,words,'bl','middle');txt(svg,L+i*gw+gw/2,H-6,g.n.match(/\((.*)\)/)[0],'tk','middle');
+  const hit=el('rect',{x:L+i*gw,y:T,width:gw,height:H-T-B,fill:'transparent'},svg);bindTip(hit,`<b>${g.n}</b>`+g.v.map((v,k)=>`<div>${names[k]}: ${v.toFixed(1)}%</div>`).join(''))})})();
+function hbars(id,vals,max,step,fmtv,colorf,tipf,stackF){const svg=document.getElementById(id);const W=520,H=330,L=40,R=60,T=6,B=24;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const rh=(H-T-B)/ORD.length,X=v=>L+v/max*(W-L-R);for(let v=0;v<=max+1e-9;v+=step){el('line',{x1:X(v),x2:X(v),y1:T,y2:H-B,class:'grid'},svg);txt(svg,X(v),H-8,fmtv(v),'tk','middle')}
+ ORD.forEach((d,i)=>{const y=T+i*rh;txt(svg,L-8,y+rh/2+4,'D'+d,'bl','end');const parts=stackF?stackF(d):[[vals(d),colorf(d)]];let x0=0;
+  parts.forEach(([v,c])=>{if(v>0)el('rect',{x:X(x0),y:y+rh*.18,width:Math.max(1,X(x0+v)-X(x0)),height:rh*.64,rx:2,fill:c},svg);x0+=v});
+  txt(svg,X(x0)+5,y+rh/2+5,fmtv(x0),'bv');const hit=el('rect',{x:0,y,width:W,height:rh,fill:'transparent'},svg);bindTip(hit,tipf(d))})}
+const nameOf=d=>`<b>District ${d}</b><div>${DD[d].lab}</div>`;
+hbars('c-tx',null,2600,500,v=>M(v),null,d=>nameOf(d)+`<div>Near-term ${M(DD[d].txn)}</div><div>Deferred 10+ yr ${M(DD[d].txf)}</div>`,d=>[[DD[d].txn,'var(--s287)'],[DD[d].txf,'var(--line)']]);
+const north=d=>['10','4','7'].includes(d);
+hbars('c-txres',d=>DD[d].txn*1e6/DD[d].pop20,20000,5000,v=>'$'+(v>=1000?Math.round(v/1000)+'k':Math.round(v)),d=>north(d)?'var(--high)':'var(--sah)',d=>nameOf(d)+`<div>$${fmt(DD[d].txn*1e6/DD[d].pop20)} per resident</div>`);
+const yc=['var(--muted)','var(--sah)','var(--sbu)','var(--s287)'];
+hbars('c-city',null,220,50,v=>'$'+Math.round(v)+'M',null,d=>nameOf(d)+['2014','2018','2022','2026'].map((y,k)=>`<div>${y}: $${DD[d].bond[k].toFixed(1)}M</div>`).join('')+`<div>$${fmt(DD[d].city*1e6/DD[d].pop20)} per resident</div>`,d=>DD[d].bond.map((v,k)=>[v,yc[k]]));
+hbars('c-growth',d=>100*(DD[d].pop20/DD[d].pop10-1),60,10,v=>Math.round(v)+'%',d=>north(d)?'var(--high)':'var(--sah)',d=>nameOf(d)+`<div>2010: ${fmt(DD[d].pop10)}</div><div>2020: ${fmt(DD[d].pop20)}</div><div>+${fmt(DD[d].pop20-DD[d].pop10)} residents</div>`);
+document.getElementById('rows').innerHTML=ORD.map(d=>{const x=DD[d];return `<tr><td>${d}</td><td>${x.lab}</td><td>${fmt(x.pop20)}</td><td>+${(100*(x.pop20/x.pop10-1)).toFixed(0)}%</td><td>${x.txn.toFixed(1)}</td><td>${x.txf.toFixed(1)}</td><td>${x.city.toFixed(1)}</td><td>$${fmt(x.txn*1e6/x.pop20)}</td><td>$${fmt(x.city*1e6/x.pop20)}</td></tr>`}).join('')+`<tr><td></td><td><b>City total</b></td><td><b>${fmt(D.t.pop20)}</b></td><td><b>+${(100*(D.t.pop20/D.t.pop10-1)).toFixed(0)}%</b></td><td><b>${D.t.txn.toFixed(1)}</b></td><td><b>${D.t.txf.toFixed(1)}</b></td><td><b>${D.t.city.toFixed(1)}</b></td><td><b>$${fmt(D.t.txn*1e6/D.t.pop20)}</b></td><td><b>$${fmt(D.t.city*1e6/D.t.pop20)}</b></td></tr>`;
+})();
+</script>
+
+</body>
+</html>

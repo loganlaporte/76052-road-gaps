@@ -5,6 +5,7 @@ Independent map of where roads in ZIP 76052 (Haslet and far north Fort Worth) ha
 Live page: https://loganlaporte.github.io/76052-road-gaps/
 Full data and methods: https://loganlaporte.github.io/76052-road-gaps/details.html
 Crashes: https://loganlaporte.github.io/76052-road-gaps/crashes.html
-Highway triangle (US 287, SH 114, I-35W): https://loganlaporte.github.io/76052-road-gaps/triangle.html
+287/114/35W Corridor assessment: https://loganlaporte.github.io/76052-road-gaps/corridor.html
+US 287 cost of deferred capacity: https://loganlaporte.github.io/76052-road-gaps/cost.html
 
 Map data (c) OpenStreetMap contributors (ODbL).
